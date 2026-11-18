@@ -2,14 +2,14 @@
 document_id: NOCTUNE-MVP-ROADMAP
 version: 1.1
 date: 2026-11-18
-status: phase-0-1-authorized
+status: phase-2-pr-review
 product: Noctune
 platform: Android (Capacitor)
 project_type: personal offline music player
-implementation_authorized: phase-0-1-only
+implementation_authorized: phases-0-2-only
 new_repository: sirawitchotika-boop/Noctune
 new_repository_url: https://github.com/sirawitchotika-boop/Noctune
-new_repository_status_verified: bootstrapped main, Phase 0–1 draft PR #1 open
+new_repository_status_verified: PR #1 merged main at 1a804244, Phase 2 PR #2 open
 new_repository_default_branch_setting: main
 reference_repository: sirawitchotika-boop/Music-Player-Local
 reference_branch: main
@@ -19,17 +19,17 @@ owner_approval_required_for: [implementation, merging, release, installation, de
 
 ## Current execution status — 18 November 2026
 
-Boss approved Phase 0–1 implementation. `main` was bootstrapped with commit `b1efc065` and review work is in [draft PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1) on `feat/phase-0-1-android-shell`. See `BASELINE.md` for V1 safety and the live PR/CI status for current checks. Approval does **not** cover merging, installing, release signing, deleting data, or implementing Phases 2–6. Historical handoff statements below describe the repository *before* this approval.
+Boss merged [PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1); `main` is at commit `1a804244`. Boss subsequently authorized Phase 2 coding; [PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2) proposes local IndexedDB imports, search, Favorites, playlists and disposable-data tests, while deferring playback to Phase 3. Phase 2 is not merged or phone-tested. See `BASELINE.md` for V1 protection. Approval does **not** cover PR #2 merging, installing, release signing, data deletion outside confirmed in-app test actions, or implementing Phases 3–6. Historical handoff statements below refer to the pre-approval state.
 
 # Noctune
 ## MVP product brief and end-to-end development roadmap
 
-**Document state:** Roadmap v1.1 approved for Phase 0–1 implementation only on 18 November 2026; later phases, merges, installations and releases remain unauthorized.  
+**Document state:** Roadmap v1.1; Phase 0–1 merged, Phase 2 approved for implementation only, with PR #2 unmerged. Phases 3–6, additional merges, installations and releases remain unauthorized.  
 **Audience:** Boss (product owner) and future AI/software developers.  
 **Principle:** KISS — one user, one device-focused music player, no overengineering.  
 **Source of truth:** This document records agreed scope and proposed decisions. The live repository and actual test evidence take precedence over historical notes.
 
-**Repository:** [sirawitchotika-boop/Noctune](https://github.com/sirawitchotika-boop/Noctune) — **created by Boss; verified empty on 18 Nov 2026**. GitHub lists `main` as the default branch setting, but no branch head or commit exists yet. **Reference only:** [Music-Player-Local](https://github.com/sirawitchotika-boop/Music-Player-Local).
+**Repository:** [sirawitchotika-boop/Noctune](https://github.com/sirawitchotika-boop/Noctune) — created by Boss, now initialized and built through Phase 1. The original 'empty' state below is historical. **Reference only:** [Music-Player-Local](https://github.com/sirawitchotika-boop/Music-Player-Local).
 
 > **Product promise:** *Your music, without the noise.* Noctune is a quiet, offline-first Android music player that feels intentionally designed, not generated from a generic app template.
 
