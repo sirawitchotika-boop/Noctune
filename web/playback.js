@@ -37,7 +37,7 @@ export class PlaybackController {
       loading: this.loading,
       buffering: this.buffering,
       position: finite(this.audio.currentTime),
-      duration: finite(this.audio.duration),
+      duration: this.objectUrl ? finite(this.audio.duration) : 0,
       error: this.error
     };
   }
@@ -54,6 +54,12 @@ export class PlaybackController {
     if (!track) return false;
     const request = ++this.request;
     this.audio.pause();
+    // Do not leave a previous song attached while selecting another. A missing
+    // imported blob must never let a retry play audio from the wrong track.
+    this.audio.removeAttribute('src');
+    this.audio.load();
+    if (this.objectUrl) this.urls.revokeObjectURL(this.objectUrl);
+    this.objectUrl = null;
     this.loading = true;
     this.error = '';
     this.buffering = false;
@@ -63,11 +69,9 @@ export class PlaybackController {
       if (request !== this.request) return false;
       if (!blob || !blob.size) throw new Error('The imported audio copy is missing or empty.');
       const nextUrl = this.urls.createObjectURL(blob);
-      const previousUrl = this.objectUrl;
       this.objectUrl = nextUrl;
       this.audio.src = nextUrl;
       this.audio.load();
-      if (previousUrl) this.urls.revokeObjectURL(previousUrl);
       this.loading = false;
       this.emit();
       return await this.resume();
@@ -83,7 +87,13 @@ export class PlaybackController {
   }
 
   async resume() {
-    if (!this.queue.current || this.loading) return false;
+    if (!this.queue.current || this.loading || !this.objectUrl) {
+      if (this.queue.current && !this.objectUrl) {
+        this.error = 'The selected audio copy is unavailable. Choose another song.';
+        this.emit();
+      }
+      return false;
+    }
     try {
       await this.audio.play();
       this.error = '';
