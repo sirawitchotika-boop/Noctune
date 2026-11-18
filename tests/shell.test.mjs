@@ -11,7 +11,7 @@ test('package and Capacitor IDs remain separate from GT SoundMaster', () => {
   assert.equal(pkg.dependencies['@capacitor/core'], '8.6.2');
   assert.equal(pkg.dependencies['@capacitor/android'], '8.6.2');
 });
-test('Phase 3 has real playback controls but no unapproved native media service', () => {
+test('Phase 4 preserves playback controls and enables a scoped native media service', () => {
   const html = read('web/index.html');
   const app = read('web/app.js');
   assert.match(html, /id="player-sheet"/);
@@ -21,7 +21,9 @@ test('Phase 3 has real playback controls but no unapproved native media service'
   assert.match(app, /deleteTrackPermanently/);
   assert.match(app, /if \(view !== 'songs'\)/);
   const manifest = read('android/app/src/main/AndroidManifest.xml');
-  assert.doesNotMatch(manifest, /MediaPlaybackService|FOREGROUND_SERVICE|READ_MEDIA_AUDIO/);
+  assert.match(manifest, /android\.permission\.FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
+  assert.match(manifest, /android:name="\.NoctuneMediaService"[\s\S]*?android:exported="false"/);
+  assert.doesNotMatch(manifest, /READ_MEDIA_AUDIO/);
 });
 test('custom identity retains distinct web and Android icon assets', () => {
   assert.match(read('web/icon.svg'), /#B77B59/);

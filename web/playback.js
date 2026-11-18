@@ -97,12 +97,18 @@ export class PlaybackController {
     }
     try {
       await this.beforePlay();
+    } catch (error) {
+      this.error = error?.message || 'Android audio controls are unavailable. Please try again.';
+      this.emit();
+      return false;
+    }
+    try {
       await this.audio.play();
       this.error = '';
       this.emit();
       return true;
-    } catch (error) {
-      this.error = error?.message || 'Playback could not start. Try pressing Play again.';
+    } catch {
+      this.error = 'Playback could not start. Try pressing Play again or choosing another song.';
       this.emit();
       return false;
     }

@@ -121,3 +121,17 @@ test('failed selection clears previous audio source so retry cannot play the wro
   assert.equal(controller.state.duration, 0);
   assert.match(controller.state.error, /unavailable/i);
 });
+
+test('a native audio-focus failure is reported without starting the audio element', async () => {
+  const audio = new FakeAudio();
+  const controller = new PlaybackController({
+    audio,
+    getBlob: async () => ({ size: 4 }),
+    beforePlay: async () => { throw new Error('Audio focus is unavailable. Please try again.'); },
+    urls: { createObjectURL: () => 'blob:mock', revokeObjectURL() {} }
+  });
+  assert.equal(await controller.select(tracks, 1), false);
+  assert.equal(audio.playCalls, 0);
+  assert.equal(controller.state.playing, false);
+  assert.match(controller.state.error, /Audio focus is unavailable/);
+});
