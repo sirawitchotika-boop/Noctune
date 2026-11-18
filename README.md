@@ -2,17 +2,25 @@
 
 *Your music, without the noise.*
 
-Independent, offline-first Android music player. **Noctune is a new app**, not a rename or migration of [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local). No GT SoundMaster files, package IDs, or user data are modified.
+An independent, offline-first Android music player. This is a **separate app** from [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local); its package and app data are separate.
 
-## Development status
+## Implementation status (18 Nov 2026)
 
-**Phase 0–1 Android shell** is in [draft PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1); it has **not been merged, installed, or released**. The shell intentionally shows empty Songs and Playlists views. Music import, storage, playback, timer and Android media controls are later milestones, not available yet.
+- **Phases 0–1:** merged in [PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1). A debug Android shell built successfully in CI; actual phone launch not tested.
+- **Phase 2:** local music library, search, Favorites and playlists in [PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2), pending review/merge.
+- **Phase 3 and later:** music playback, queue, timer, Android background/notifications/Bluetooth and release signing are **not implemented**.
 
-- Android application ID: `com.noctune.player` (separate from GT SoundMaster's `com.gt.soundmaster`)
-- Capacitor 8.6.2, vanilla HTML/CSS/JavaScript
-- Pinned dependencies via `package-lock.json`, committed Android Java/XML/Gradle project
-- [Full MVP roadmap](ROADMAP.md) and [V1 baseline/fallback](BASELINE.md)
-- A/B/C phone checkpoints follow Phases 3, 4 and 6. A brief optional Phase 1 launch check is separate.
+### Phase 2 behavior
+
+Select **Add music** from Songs to import audio through Android's document picker into Noctune's own IndexedDB stores (metadata and audio blobs are separate). Files stay on-device; no accounts or streaming. Invalid/empty files are rejected. Duplicate detection uses **filename + byte size + lastModified**; it does not hash the audio and may keep two files if the picker reports different timestamps.
+
+Use Favorites' star action to mark/unmark existing songs. In Playlists create/rename/delete a collection, then add songs from their Library rows. Removing a song from a playlist, clearing or deleting the playlist **does not delete music**. To delete an imported audio copy from the Noctune library, use Delete in **Songs** and explicitly confirm; this removes only Noctune's stored copy and its memberships, never the original file in the Android file picker or GT SoundMaster.
+
+The music list **cannot play audio yet**; that is Phase 3. Avoid importing irreplaceable music or performing device update tests before the planned grouped phone checkpoint A.
+
+### Data safety
+
+Noctune stores files in the app's private IndexedDB. Android uninstallation, clearing app data or some storage recovery conditions can remove these copies. Keep the original audio files separately; Noctune is not a backup service. The current debug APK is not a stable release-signed update.
 
 ## Developer checks and debug build
 
@@ -26,6 +34,6 @@ cd android
 gradle --no-daemon assembleDebug
 ```
 
-The GitHub Actions [Android debug workflow](.github/workflows/android.yml) runs these checks, verifies the APK package identity, and uploads a temporary **debug APK** artifact. Debug APKs are not signed with a stable release identity. CI passing does not prove real phone launch, Bluetooth or background playback.
+The [Android workflow](.github/workflows/android.yml) runs tests, builds the debug APK, verifies the package ID `com.noctune.player` and stores a temporary artifact. Tests use disposable, in-memory fake IndexedDB. CI is **not** a physical phone test.
 
-No build installs or modifies either Android app automatically. **Do not merge, install, sign for release or publish without separate approval.**
+See the [full MVP roadmap](ROADMAP.md) and [V1 fallback baseline](BASELINE.md). Phone testing remains grouped in checkpoints A/B/C after Phases 3/4/6. **No automatic merge, install, release signing, data deletion, or release.**
