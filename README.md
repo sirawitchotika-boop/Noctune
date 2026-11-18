@@ -2,29 +2,26 @@
 
 *Your music, without the noise.*
 
-An independent, offline-first Android music player. This is a **separate app** from [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local); its package and app data are separate.
+Noctune is an independent, offline-first Android music player with a distinct app ID, icon, UI, and private music storage. [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local) is a functional reference only, and its app/data remain untouched.
 
-## Implementation status (18 Nov 2026)
+## Development status — 18 Nov 2026
 
-- **Phases 0–1:** merged in [PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1). A debug Android shell built successfully in CI; actual phone launch not tested.
-- **Phase 2:** local music library, search, Favorites and playlists in [PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2), pending review/merge.
-- **Phase 3 and later:** music playback, queue, timer, Android background/notifications/Bluetooth and release signing are **not implemented**.
+- **Phase 0–1:** [PR #1 merged](https://github.com/sirawitchotika-boop/Noctune/pull/1); native Capacitor shell and distinct identity.
+- **Phase 2:** [PR #2 merged](https://github.com/sirawitchotika-boop/Noctune/pull/2); safe imports/search/Favorites/playlists.
+- **Phase 3:** [PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) (unmerged) adds local playback/queue/timer. CI tests/build and physical-phone checks must be tracked separately.
+- **Phase 4–6:** NOT implemented. Android MediaSession, foreground/background media service, Bluetooth-disconnect handling, experience pass and stable release signing are future milestones.
 
-### Phase 2 behavior
+## What Phase 3 adds
 
-Select **Add music** from Songs to import audio through Android's document picker into Noctune's own IndexedDB stores (metadata and audio blobs are separate). Files stay on-device; no accounts or streaming. Invalid/empty files are rejected. Duplicate detection uses **filename + byte size + lastModified**; it does not hash the audio and may keep two files if the picker reports different timestamps.
+Tap **Play** beside a song to start playing its stored Noctune copy. The mini-player opens a dedicated view with play/pause, next/previous, position seek, and modes: **Order → Shuffle → Repeat one**. Choosing a different library view does not unexpectedly change the active queue. Failed audio loads do not automatically skip to another track.
 
-Use Favorites' star action to mark/unmark existing songs. In Playlists create/rename/delete a collection, then add songs from their Library rows. Removing a song from a playlist, clearing or deleting the playlist **does not delete music**. To delete an imported audio copy from the Noctune library, use Delete in **Songs** and explicitly confirm; this removes only Noctune's stored copy and its memberships, never the original file in the Android file picker or GT SoundMaster.
+**Sleep timer:** choose 1–720 whole minutes or a saved preset, Start/Stop, and optionally save/remove presets. It uses a stored wall-clock deadline, not a decrementing counter. If Android suspends the WebView, its timer callback may be late; notification/background reliability and audio-route handling are Phase 4. **Do not assume the screen-off timer or background playback works until Checkpoint B.**
 
-The music list **cannot play audio yet**; that is Phase 3. Avoid importing irreplaceable music or performing device update tests before the planned grouped phone checkpoint A.
+IndexedDB stores imported audio copies and their metadata separately. File names and playlist names are shown as text, not injected HTML. Favorite changes are explicit; removing a song from a playlist never removes audio. Deleting an imported track requires confirmation and removes only Noctune's stored copy. This app is **not a backup**; keep the original files. Never use valuable music for destructive/update testing.
 
-### Data safety
+## Developer verification
 
-Noctune stores files in the app's private IndexedDB. Android uninstallation, clearing app data or some storage recovery conditions can remove these copies. Keep the original audio files separately; Noctune is not a backup service. The current debug APK is not a stable release-signed update.
-
-## Developer checks and debug build
-
-Requirements: Node 22, Java 21, Android SDK 36 and Gradle 8.14.3.
+Requirements: Node 22+, Java 21, Android SDK 36, Gradle 8.14.3.
 
 ```sh
 npm ci
@@ -34,6 +31,8 @@ cd android
 gradle --no-daemon assembleDebug
 ```
 
-The [Android workflow](.github/workflows/android.yml) runs tests, builds the debug APK, verifies the package ID `com.noctune.player` and stores a temporary artifact. Tests use disposable, in-memory fake IndexedDB. CI is **not** a physical phone test.
+[GitHub Actions Android debug workflow](.github/workflows/android.yml) executes automated tests, JavaScript syntax checks, APK build, package-ID verification, and a temporary debug APK artifact. Passing CI **does not** prove playback on a real phone.
 
-See the [full MVP roadmap](ROADMAP.md) and [V1 fallback baseline](BASELINE.md). Phone testing remains grouped in checkpoints A/B/C after Phases 3/4/6. **No automatic merge, install, release signing, data deletion, or release.**
+The three planned major Boss tests remain **Checkpoint A** after Phase 3 (local library/playback/timer), **Checkpoint B** after Phase 4 (Bluetooth/notifications/background/screen-off timer), and **Checkpoint C** after Phase 6 (safe, signed updates). A/B/C must use disposable test audio and a short grouped checklist. Installation and release remain unapproved, and debug APKs have no stable release signing plan yet.
+
+See [ROADMAP.md](ROADMAP.md) for the approved scope and [BASELINE.md](BASELINE.md) for the preserved V1 fallback.
