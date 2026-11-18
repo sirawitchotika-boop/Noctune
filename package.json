@@ -6,7 +6,7 @@
   "description": "Independent offline-first Android music player",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "npm test && node scripts/check-shell.mjs",
+    "check": "npm test && node --check web/app.js && node --check web/library.js && node --check web/library-rules.js && node scripts/check-shell.mjs",
     "sync": "cap sync android",
     "build:android": "npm run check && npm run sync && cd android && gradle assembleDebug"
   },
