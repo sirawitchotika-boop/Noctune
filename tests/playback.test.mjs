@@ -107,3 +107,17 @@ test('selected song deleted from the library stops playback without selecting an
   assert.equal(controller.state.track, null);
   assert.equal(controller.state.playing, false);
 });
+
+test('failed selection clears previous audio source so retry cannot play the wrong song', async () => {
+  const { controller, audio, revoked } = makeController(async id => id === 2 ? null : { size: 8 });
+  assert.equal(await controller.select(tracks, 1), true);
+  const previousPlayCalls = audio.playCalls;
+  assert.equal(await controller.select(tracks, 2), false);
+  assert.equal(audio.src, '');
+  assert.deepEqual(revoked, ['blob:mock-1']);
+  assert.equal(await controller.toggle(), false);
+  assert.equal(audio.playCalls, previousPlayCalls);
+  assert.equal(controller.state.track.id, 2);
+  assert.equal(controller.state.duration, 0);
+  assert.match(controller.state.error, /unavailable/i);
+});
