@@ -1,13 +1,41 @@
+// Phase 6: candidate signing is opt-in and NEVER changes the signing identity
+// of an installed debug Noctune. No keystore or passwords live in Git.
+def noctuneCandidate = project.findProperty('noctuneCandidate')?.toString() == 'true'
+def noctuneVersion = project.findProperty('noctuneVersionCode')?.toString()
+if (noctuneCandidate && !(noctuneVersion ==~ /^[1-9][0-9]{0,7}$/)) {
+    throw new GradleException('Candidate versionCode must be a positive integer (1..99999999).')
+}
+def candidateStore = System.getenv('NOCTUNE_SIGNING_STORE_FILE')
+def candidateStorePass = System.getenv('NOCTUNE_SIGNING_STORE_PASSWORD')
+def candidateAlias = System.getenv('NOCTUNE_SIGNING_KEY_ALIAS')
+def candidateKeyPass = System.getenv('NOCTUNE_SIGNING_KEY_PASSWORD')
+if (noctuneCandidate) {
+    if (!candidateStore || !candidateStorePass || !candidateAlias || !candidateKeyPass ||
+        !file(candidateStore).isFile()) {
+        throw new GradleException('Candidate signing not configured. Use a privately stored keystore; never fall back to the debug key.')
+    }
+}
+
 apply plugin: 'com.android.application'
 
 android {
     namespace = "com.noctune.player"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        if (noctuneCandidate) {
+            candidate {
+                storeFile file(candidateStore)
+                storePassword candidateStorePass
+                keyAlias candidateAlias
+                keyPassword candidateKeyPass
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.noctune.player"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode (noctuneCandidate ? noctuneVersion.toInteger() : 1)
         versionName "1.0"
         manifestPlaceholders = [noctuneLabel: "@string/app_name"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -28,6 +56,14 @@ android {
             }
         }
         release {
+            if (noctuneCandidate) {
+                // Signed, isolated package for TWO-build in-place update testing.
+                // Never attempt to overwrite an installed debug-signed Noctune.
+                applicationIdSuffix ".rc"
+                versionNameSuffix "-rc"
+                manifestPlaceholders["noctuneLabel"] = "Noctune RC"
+                signingConfig signingConfigs.candidate
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

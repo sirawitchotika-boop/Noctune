@@ -2,14 +2,14 @@
 document_id: NOCTUNE-MVP-ROADMAP
 version: 1.1
 date: 2026-11-18
-status: phase-5-pr-review
+status: phase-6-signing-gate
 product: Noctune
 platform: Android (Capacitor)
 project_type: personal offline music player
-implementation_authorized: phases-0-5-only
+implementation_authorized: phases-0-6-code-only
 new_repository: sirawitchotika-boop/Noctune
 new_repository_url: https://github.com/sirawitchotika-boop/Noctune
-new_repository_status_verified: PRs #1 #2 #3 #5 #6 merged; main 8e31cb3; Phase 5 UX PR pending
+new_repository_status_verified: PRs #1 #2 #3 #5 #6 #9 merged; main c5da272; Phase 6 candidate pending
 new_repository_default_branch_setting: main
 reference_repository: sirawitchotika-boop/Music-Player-Local
 reference_branch: main
@@ -19,16 +19,16 @@ owner_approval_required_for: [implementation, merging, release, installation, de
 
 ## Current execution status — 18 November 2026
 
-Boss merged [Phase 4 PR #6](https://github.com/sirawitchotika-boop/Noctune/pull/6). Main is verified at `8e31cb3afb0e086536ef8284a5f06703ba6346ec`. The latest Phase 4 manual debug APK run [#44252646203](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44252646203) succeeded; Boss reported all Checkpoint B phone checks passing and the Bluetooth blocker [issue #8](https://github.com/sirawitchotika-boop/Noctune/issues/8) is closed. Checkpoint A had also passed. Auto APK builds remain **disabled** after [PR #5](https://github.com/sirawitchotika-boop/Noctune/pull/5). GT SoundMaster remains untouched.
+Boss merged [Phase 5 PR #9](https://github.com/sirawitchotika-boop/Noctune/pull/9). Verified Noctune main: `c5da2727186e71839ccf1da71f6e53c8399efe15`. Checkpoints A and B passed based on Boss's phone reports; latest manual Gate 2 build [#44252646203](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44252646203) succeeded. The Realme system-bar adjustment introduced in Phase 5 is not yet device-verified; [Issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4) remains open. No automatic APK builds run.
 
-Boss authorized continuation into **Phase 5 — experience pass**. The `feat/phase-5-ux-polish` PR proposes larger touch targets, accessible labels/error announcements and consistent dark web/native system-bar surfaces. The Realme color mismatch is not yet reverified on device; keep [issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4) open, and defer unspecified small UX logic reports rather than guessing fixes. **No separate Boss phone test and no APK build are planned for this styling pass.**
+**Phase 6 coding preparation:** The `feat/phase-6-release-safety` branch adds an **opt-in** signed release-candidate configuration and manual-only workflow restricted to reviewed main. The RC package is `com.noctune.player.rc`, isolated from all installed debug apps. The workflow requires a separately approved privately stored keystore and checks a known SHA-256 signing-certificate fingerprint. **No signing key has been created, changed, supplied or uploaded; no signed APK, in-place update or Checkpoint C test has occurred.** This work does not authorize installation/release.
 
-**Owner gate:** Phase 5 coding/PR is authorized. No merge, installation, release, data deletion, signing-key change or Phase 6 implementation without separate explicit approval. Phase 6 will address stable private signing and Checkpoint C in-place update safety.
+**Safety gate:** Merging requires Boss approval. Actual key management, any changes to original Noctune signing identity, installs/updates, data migration and public release require separate explicit approval. Follow [RELEASE-SAFETY.md](RELEASE-SAFETY.md) before Checkpoint C. A passing RC-to-RC update is **not** proof that original debug-installed Noctune can be upgraded without losing data. GT SoundMaster remains untouched.
 
 # Noctune
 ## MVP product brief and end-to-end development roadmap
 
-**Document state:** Roadmap v1.1; Phases 0–4 merged, manual builds enabled, Phase 5 UX PR proposed; Phase 6 and release signing pending.  
+**Document state:** Roadmap v1.1; Phases 0–5 merged, Phase 6 signing/update preparation under review. Private signing key and Checkpoint C remain pending.  
 **Audience:** Boss (product owner) and future AI/software developers.  
 **Principle:** KISS — one user, one device-focused music player, no overengineering.  
 **Source of truth:** This document records agreed scope and proposed decisions. The live repository and actual test evidence take precedence over historical notes.
