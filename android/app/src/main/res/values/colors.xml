@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="noctune_background">#141619</color>
+  <color name="noctune_foreground">#E9E7E1</color>
+  <color name="noctune_accent">#B77B59</color>
+</resources>

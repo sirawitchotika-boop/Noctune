@@ -1,0 +1,55 @@
+name: Noctune Android debug APK
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Check shell
+        run: npm run check
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify runner Android SDK
+        run: test -d "$ANDROID_HOME/platforms"
+      - name: Set up Gradle 8.14.3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Sync committed Android project
+        run: npx cap sync android
+      - name: Build debug APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+      - name: Check APK package identity
+        run: |
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          AAPT="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -name aapt -type f | sort -V | tail -1)"
+          test -n "$AAPT"
+          "$AAPT" dump badging android/app/build/outputs/apk/debug/app-debug.apk | grep "^package: name='com.noctune.player'"
+      - name: Store debug APK (not a signed release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: noctune-phase1-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
