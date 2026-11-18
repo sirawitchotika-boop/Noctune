@@ -20,12 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Refresh lockfile for Phase 2 test dependency (temporary)
-        run: |
-          npm install --package-lock-only --ignore-scripts
-          echo 'NOCTUNE_P2_LOCK_START'
-          cat package-lock.json
-          echo 'NOCTUNE_P2_LOCK_END'
       - name: Install pinned dependencies
         run: npm ci
       - name: Check shell
