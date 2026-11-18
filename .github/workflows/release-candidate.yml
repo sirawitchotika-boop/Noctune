@@ -111,26 +111,10 @@ jobs:
             echo "Candidate APK is debuggable; refusing to upload"
             exit 1
           fi
-          "$SIGNER" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/noctune-signature.txt"
-          # Android build-tools can label a signer as either #1 or
-          # (minSdkVersion=..., maxSdkVersion=...). Validate *every* signer.
-          mapfile -t ACTUAL_CERTS < <(bash scripts/extract-apk-certs.sh < "$RUNNER_TEMP/noctune-signature.txt")
-          EXPECTED="$(printf '%s' "$EXPECTED_CERT" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
-          if (( ${#ACTUAL_CERTS[@]} == 0 )); then
-            echo "Could not parse the signing certificate digest from apksigner output"
-            exit 1
-          fi
-          for ACTUAL in "${ACTUAL_CERTS[@]}"; do
-            if ! [[ "$ACTUAL" =~ ^[0-9a-f]{64}$ ]]; then
-              echo "Invalid signing certificate digest reported by apksigner"
-              exit 1
-            fi
-            if [[ "$ACTUAL" != "$EXPECTED" ]]; then
-              echo "Signed APK certificate differs from the GitHub keystore certificate verified before the build"
-              exit 1
-            fi
-          done
-          echo "All APK signing certificate fingerprints match the approved fingerprint"
+          # Verify the APK, then compare its X.509 PEM certificate(s) by DER SHA-256.
+          # Avoid parsing apksigner's human-readable signer labels across SDK versions.
+          "$SIGNER" verify --verbose --print-certs-pem "$APK" > "$RUNNER_TEMP/noctune-signature.txt"
+          python3 scripts/verify-apk-cert-pem.py "$RUNNER_TEMP/noctune-signature.txt" "$EXPECTED_CERT"
       - name: Upload verified signed RC APK (not a public release)
         uses: actions/upload-artifact@v4
         with:
