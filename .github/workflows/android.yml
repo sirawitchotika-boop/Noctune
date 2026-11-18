@@ -1,9 +1,8 @@
 name: Noctune Android debug APK
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  # Build only when Boss explicitly requests a test-gate APK.
+  # No auto builds on pushes or pull requests: conserve GitHub Actions quota.
   workflow_dispatch:
 
 permissions:
