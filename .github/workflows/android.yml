@@ -20,12 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Generate initial lockfile for bootstrap review
-        run: |
-          npm install --package-lock-only --ignore-scripts
-          echo 'NOCTUNE_LOCKFILE_START'
-          cat package-lock.json
-          echo 'NOCTUNE_LOCKFILE_END'
       - name: Install pinned dependencies
         run: npm ci
       - name: Check shell
@@ -35,8 +29,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Verify runner Android SDK
+        run: test -d "$ANDROID_HOME/platforms"
       - name: Set up Gradle 8.14.3
         uses: gradle/actions/setup-gradle@v4
         with:
