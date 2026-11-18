@@ -15,10 +15,12 @@ class Element extends EventTarget {
     this.value = '';
     this.textContent = '';
     this.open = false;
+    this.attributes = new Map();
   }
   replaceChildren(...nodes) { this.children = nodes; }
   append(...nodes) { this.children.push(...nodes); }
-  setAttribute() {}
+  setAttribute(key, value) { this.attributes.set(key, String(value)); }
+  getAttribute(key) { return this.attributes.get(key) ?? null; }
   matches() { return false; }
   click() { this.dispatchEvent(new Event('click')); }
   showModal() { this.open = true; }
@@ -82,6 +84,8 @@ test('browser entrypoint boots, imports locally and plays selected track without
   await until(() => ids.get('player-sheet').open);
   assert.equal(ids.get('mini-title').textContent, file.name);
   assert.equal(ids.get('mini-subtitle').textContent, 'Playing locally');
+  assert.equal(ids.get('open-player').getAttribute('aria-label'), 'Open now playing: ' + file.name);
+  assert.match(ids.get('play-mode').getAttribute('aria-label'), /Playback mode: Order/);
 
   ids.get('tab-favorites').click();
   ids.get('audio-files').files = [new File(['b'], 'blocked.mp3', { type: 'audio/mpeg' })];

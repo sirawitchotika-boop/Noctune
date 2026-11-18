@@ -56,6 +56,8 @@ function updatePlayer(state) {
   $('player-heading').textContent = state.track?.name || 'Nothing playing';
   $('player-status').textContent = state.error || (state.loading ? 'Loading audio…' : state.buffering ? 'Buffering…' : state.playing ? 'Playing locally' : 'Paused');
   $('open-player').disabled = !state.track;
+  $('open-player').setAttribute('aria-label',
+    state.track ? 'Open now playing: ' + state.track.name : 'Open now playing');
   const enabled = Boolean(state.track) && !state.loading;
   for (const id of ['mini-toggle', 'toggle', 'previous', 'next']) $(id).disabled = !enabled;
   $('mini-toggle').textContent = state.playing ? 'Ⅱ' : '▶';
@@ -71,6 +73,8 @@ function updatePlayer(state) {
   }
   const mode = { 'order': 'Order', 'shuffle': 'Shuffle', 'repeat-one': 'Repeat one' };
   $('play-mode').textContent = 'Mode: ' + mode[state.mode];
+  $('play-mode').setAttribute('aria-label',
+    'Playback mode: ' + mode[state.mode] + '. Activate to change mode.');
 }
 
 function updateTimer(seconds) {
@@ -110,6 +114,7 @@ function tell(message, isError = false) {
   const notice = $('notice');
   notice.textContent = message;
   notice.classList.toggle('is-error', isError);
+  notice.setAttribute('role', isError ? 'alert' : 'status');
   notice.hidden = !message;
 }
 
@@ -144,6 +149,7 @@ function songRow(track, context) {
   const title = document.createElement('strong');
   // Filenames are always inserted as text, never interpolated into innerHTML.
   title.textContent = track.name;
+  title.title = track.name; // Keep the full filename available if the row wraps.
   const detail = document.createElement('span');
   detail.textContent = (track.size / (1024 * 1024)).toFixed(1) + ' MB · Local copy';
   info.append(title, detail);
