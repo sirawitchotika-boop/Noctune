@@ -15,7 +15,7 @@ test('imports skip exact duplicates, reject unsupported and keep distinct modifi
   const lib = makeLibrary();
   const first = audio('same.mp3', 'aaa', 123);
   const sameSizeDifferentTime = audio('same.mp3', 'bbb', 124);
-  const result = await lib.importAudio([first, first, sameSizeDifferentTime, audio('no.txt', 'ok'), audio('zero.mp3', '')]);
+  const result = await lib.importAudio([first, first, sameSizeDifferentTime, new File(['ok'], 'no.txt', { type: 'text/plain' }), audio('zero.mp3', '')]);
   assert.deepEqual(result, { added: 2, duplicates: 1, rejected: 2 });
   const tracks = await lib.tracks();
   assert.equal(tracks.length, 2);
