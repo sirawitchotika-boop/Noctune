@@ -77,6 +77,16 @@ export class MusicLibrary {
     });
   }
 
+  // Fetch only the selected audio blob; never load the whole library into RAM.
+  async audioBlob(trackId) {
+    const db = await this.open();
+    return transaction(db, ['audio'], 'readonly', (tx, done) => {
+      tx.objectStore('audio').get(trackId).onsuccess = event => {
+        done(event.target.result?.blob || null);
+      };
+    });
+  }
+
   async importAudio(fileList) {
     const files = Array.from(fileList || []);
     let added = 0;
