@@ -22,9 +22,9 @@ android {
             // Each GitHub runner can generate a different debug certificate.
             // Gate 2 must never require uninstalling Boss's existing Noctune data.
             if (project.hasProperty('noctuneGate2')) {
-                applicationIdSuffix ".gate2"
+                applicationIdSuffix ".gate2fix"
                 versionNameSuffix "-gate2"
-                manifestPlaceholders["noctuneLabel"] = "Noctune Gate 2"
+                manifestPlaceholders["noctuneLabel"] = "Noctune Gate 2 Fix"
             }
         }
         release {

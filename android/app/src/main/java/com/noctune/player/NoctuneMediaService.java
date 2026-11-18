@@ -11,8 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
@@ -37,10 +35,6 @@ public class NoctuneMediaService extends Service {
 
     private static NoctuneMediaService instance;
     private static Snapshot lastSnapshot;
-    private static AudioManager audioManager;
-    private static AudioFocusRequest focusRequest;
-    private static boolean focusHeld;
-
     private MediaSession session;
     private NotificationManager notifications;
     private boolean playing;
@@ -70,54 +64,6 @@ public class NoctuneMediaService extends Service {
         }
     }
 
-    private static final AudioManager.OnAudioFocusChangeListener FOCUS_LISTENER = change -> {
-        if (change == AudioManager.AUDIOFOCUS_LOSS ||
-            change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
-            change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-            MAIN.post(() -> {
-                if (instance != null && instance.playing) instance.requestPause();
-            });
-        }
-        // Never auto-resume after a route or focus change.
-    };
-
-    public static synchronized boolean acquireAudioFocus(Context context) {
-        if (focusHeld) return true;
-        if (audioManager == null) {
-            audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        }
-        if (audioManager == null) return false;
-        int result;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (focusRequest == null) {
-                AudioAttributes attributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
-                focusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setAudioAttributes(attributes)
-                    .setOnAudioFocusChangeListener(FOCUS_LISTENER)
-                    .build();
-            }
-            result = audioManager.requestAudioFocus(focusRequest);
-        } else {
-            result = audioManager.requestAudioFocus(
-                FOCUS_LISTENER, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN
-            );
-        }
-        focusHeld = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        return focusHeld;
-    }
-
-    public static synchronized void releaseAudioFocus() {
-        if (!focusHeld || audioManager == null) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && focusRequest != null) {
-            audioManager.abandonAudioFocusRequest(focusRequest);
-        } else {
-            audioManager.abandonAudioFocus(FOCUS_LISTENER);
-        }
-        focusHeld = false;
-    }
-
     public static void begin(Context context) {
         Intent intent = new Intent(context, NoctuneMediaService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -129,7 +75,6 @@ public class NoctuneMediaService extends Service {
 
     public static void end(Context context) {
         lastSnapshot = null;
-        releaseAudioFocus();
         context.stopService(new Intent(context, NoctuneMediaService.class));
     }
 
@@ -241,7 +186,6 @@ public class NoctuneMediaService extends Service {
         playing = false;
         showState(PlaybackState.STATE_PAUSED, position, false);
         notifications.notify(NOTIFICATION_ID, notification());
-        releaseAudioFocus();
         command("pause", 0);
     }
 
@@ -337,7 +281,6 @@ public class NoctuneMediaService extends Service {
         }
         if (instance == this) instance = null;
         foreground = false;
-        releaseAudioFocus();
         super.onDestroy();
     }
 

@@ -7,12 +7,12 @@ Noctune is an offline-first Android music player. It is **not GT SoundMaster**; 
 ## Current development state — 18 November 2026
 
 - **Phases 0–3 merged:** the independent Android shell, local audio library, Favorites, playlists, queue/modes, playback, seeking and sleep timer. Boss reported the first combined phone checkpoint passed.
-- **Phase 4 in review:** Android foreground media service, MediaSession lock-screen/notification controls, audio-focus and Bluetooth/headphone route-loss pause, and Android sleep-timer alarm. **Native APK compilation and phone behavior remain unverified until Test Gate 2.**
+- **Phase 4 in review:** Android foreground media service, MediaSession lock-screen/notification controls, Bluetooth/headphone route-loss pause (Chromium manages audio focus), and Android sleep-timer alarm. **A prior APK compiled, but the Bluetooth-disconnect playback blocker failed on the phone. The fix APK and retest remain unverified.**
 - **Phases 5–6 later:** deferred UX polish (including [Realme system-bar colors](https://github.com/sirawitchotika-boop/Noctune/issues/4)), privately protected signing identity and safe in-place update checks.
 
 ## Safety at Test Gate 2
 
-The GitHub Actions APK build is **manual-only**; editing and opening PRs do **not** trigger a build. The Gate 2 workflow uses a *separate debug app ID* `com.noctune.player.gate2` and label **Noctune Gate 2**. This protects any installed original Noctune and its IndexedDB music from the temporary, possibly incompatible debug signing keys generated on GitHub runners. The Gate 2 test app starts with its **own empty local library**; import only disposable audio.
+The GitHub Actions APK build is **manual-only**; editing and opening PRs do **not** trigger a build. The first Gate 2 APK (`com.noctune.player.gate2`) compiled and installed, but Bluetooth disconnect revealed a persistent play-then-pause blocker. The fix build uses a *new isolated package* `com.noctune.player.gate2fix` and label **Noctune Gate 2 Fix**, so neither the original Noctune nor the first Gate 2 app must be uninstalled or overwritten. GitHub-runner debug certificates can differ between builds. Import only disposable files into the fix app.
 
 **Never uninstall, clear storage, or overwrite Boss's installed Noctune to test a new debug APK.** If Android proposes replacing the original app, stop. See [Test Gate 2 checklist](TEST-GATE-2.md).
 
@@ -28,7 +28,7 @@ cd android
 gradle --no-daemon -PnoctuneGate2=true assembleDebug
 ```
 
-The [manual workflow](.github/workflows/android.yml) runs automated tests, native build, APK package identity check and uploads `noctune-gate2-isolated-debug-apk` (14-day retention). No running Actions job means **no build has been verified** for the latest Phase 4 source. Read [ROADMAP.md](ROADMAP.md) and [BASELINE.md](BASELINE.md) for scope and the preserved GT SoundMaster fallback.
+The [manual workflow](.github/workflows/android.yml) runs automated tests, native build, APK package identity check and uploads `noctune-gate2-fix-debug-apk` (14-day retention). No running Actions job means **no build has been verified** for the latest Phase 4 source. Read [ROADMAP.md](ROADMAP.md) and [BASELINE.md](BASELINE.md) for scope and the preserved GT SoundMaster fallback.
 
 ### Architecture notes
 

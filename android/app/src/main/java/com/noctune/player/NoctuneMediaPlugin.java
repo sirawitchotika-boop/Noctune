@@ -32,15 +32,11 @@ public class NoctuneMediaPlugin extends Plugin {
     @PluginMethod
     public void prepare(PluginCall call) {
         try {
-            boolean focus = NoctuneMediaService.acquireAudioFocus(getContext());
-            if (!focus) {
-                call.reject("Audio focus is unavailable. Please try again.");
-                return;
-            }
+            // Chromium's WebView media engine is the only Android audio-focus owner.
+            // A second native request can preempt WebView playback and create a pause loop.
             NoctuneMediaService.begin(getContext());
             call.resolve();
         } catch (Exception error) {
-            NoctuneMediaService.releaseAudioFocus();
             call.reject("Could not start Android media controls.", error);
         }
     }
@@ -58,7 +54,6 @@ public class NoctuneMediaPlugin extends Plugin {
                 call.getBoolean("hasTrack", false)
             );
             NoctuneMediaService.publish(state);
-            if (!state.playing) NoctuneMediaService.releaseAudioFocus();
             call.resolve();
         } catch (Exception error) {
             call.reject("Android media state could not be updated.", error);

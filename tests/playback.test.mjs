@@ -122,16 +122,27 @@ test('failed selection clears previous audio source so retry cannot play the wro
   assert.match(controller.state.error, /unavailable/i);
 });
 
-test('a native audio-focus failure is reported without starting the audio element', async () => {
+test('a native service preparation failure does not start the audio element', async () => {
   const audio = new FakeAudio();
   const controller = new PlaybackController({
     audio,
     getBlob: async () => ({ size: 4 }),
-    beforePlay: async () => { throw new Error('Audio focus is unavailable. Please try again.'); },
+    beforePlay: async () => { throw new Error('Could not start Android media controls.'); },
     urls: { createObjectURL: () => 'blob:mock', revokeObjectURL() {} }
   });
   assert.equal(await controller.select(tracks, 1), false);
   assert.equal(audio.playCalls, 0);
   assert.equal(controller.state.playing, false);
-  assert.match(controller.state.error, /Audio focus is unavailable/);
+  assert.match(controller.state.error, /Could not start Android media controls/);
+});
+
+test('manual Play works after a native route-disconnect Pause without changing songs', async () => {
+  const { controller, audio } = makeController();
+  assert.equal(await controller.select(tracks, 1), true);
+  controller.pause(); // Native route loss forwarded the pause.
+  assert.equal(controller.state.playing, false);
+  assert.equal(await controller.resume(), true); // User explicitly presses Play.
+  assert.equal(controller.state.track.id, 1);
+  assert.equal(controller.state.playing, true);
+  assert.equal(audio.playCalls, 2);
 });

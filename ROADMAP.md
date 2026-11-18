@@ -19,6 +19,8 @@ owner_approval_required_for: [implementation, merging, release, installation, de
 
 ## Current execution status — 18 November 2026
 
+The first Phase 4 APK build `44247504354` compiled and installed, but Boss reported a **blocker**: Bluetooth disconnect triggers repeated play-then-pause across songs, sometimes after restart. Other Gate 2 testing is suspended ([issue #8](https://github.com/sirawitchotika-boop/Noctune/issues/8)). A focused fix removes Noctune's redundant native audio-focus owner and reserves a new isolated debug ID `com.noctune.player.gate2fix`. **The fix is not yet APK-built or phone-verified.**
+
 Boss confirmed that [PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) was merged and reported Checkpoint A passed on a real phone. [PR #5](https://github.com/sirawitchotika-boop/Noctune/pull/5) is merged: the Android APK workflow now runs **manually only**, preserving Actions quota. Current verified main: `125095cc455f4334b639a9cc5f6bcb013773fdf9`.
 
 Boss authorized Phase 4 coding. The separate `feat/phase-4-android-media` branch proposes a native media service, notification/lock-screen actions, audio-focus/route-loss handling and a native inexact sleep alarm. **No Phase 4 Android build or phone test has been run**. Follow [Test Gate 2](TEST-GATE-2.md) once a manual APK build is explicitly requested. Phase 4 builds use an isolated debug ID `com.noctune.player.gate2` to protect previously installed Noctune data from incompatible runner debug signing keys. The reference GT SoundMaster app remains untouched.

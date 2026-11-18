@@ -1,18 +1,22 @@
 # Test Gate 2 — Android reliability
 
-**Status:** Phase 4 code candidate; APK build and physical tests not yet performed. Use this checklist only after a successful **manual** workflow build. The test app is separate, labeled **Noctune Gate 2**. Keep the installed Noctune and GT SoundMaster unchanged.
+**Status:** The first Gate 2 APK compiled and installed, but Boss reported a **blocking Bluetooth-disconnect → recurring play-then-pause bug** ([issue #8](https://github.com/sirawitchotika-boop/Noctune/issues/8)). The candidate fix has NOT been built or device-tested. **Pause the full Gate 2 checklist.** The replacement test app is labeled **Noctune Gate 2 Fix** and is separate from both original Noctune and the first Gate 2 test app.
 
 ## Manual APK build (no automatic runs)
 
 1. Open GitHub **Actions → Noctune Android debug APK (manual Gate 2) → Run workflow**.
 2. Select branch `feat/phase-4-android-media` (the Phase 4 PR branch), then select **Run workflow** once.
-3. Verify the run is green and the checked package is `com.noctune.player.gate2`.
-4. Download artifact **`noctune-gate2-isolated-debug-apk`** from that run, extract the ZIP and install its `app-debug.apk` only when Boss chooses to proceed.
-5. If Android asks to uninstall or replace the existing **Noctune**, **STOP**; do not accept or clear any data. The separate **Noctune Gate 2** app should have its own empty library.
+3. Verify the run is green and the checked package is `com.noctune.player.gate2fix`.
+4. Download artifact **`noctune-gate2-fix-debug-apk`** from that run, extract the ZIP and install its `app-debug.apk` only when Boss chooses to proceed.
+5. If Android asks to uninstall or replace the existing **Noctune**, **STOP**; do not accept or clear any data. The separate **Noctune Gate 2 Fix** app should have its own empty library. Do not uninstall either previous app.
 
 The artifact is temporary (14-day retention). Never use a debug APK to attempt the signed in-place-update test; that belongs to Test Gate 3 / Phase 6.
 
-## One grouped phone check (disposable music only)
+## Blocker retest first — do NOT repeat the entire gate yet
+
+Use 2 disposable audio files in **Noctune Gate 2 Fix**. Play through Bluetooth; disconnect the device and check that music pauses (not speaker playback). Explicitly press **Play** in the app and listen for 15 seconds; try another song, and then Play from notification. Reconnect Bluetooth and try Play again. Playback should stay playing until a new pause action or interruption occurs. If the rapid play-then-pause returns, **STOP** and report it. Do not proceed to other tests.
+
+## Full grouped phone check (only after blocker passes)
 
 - Import a short disposable audio file into **Noctune Gate 2** and start playback. Check the notification and lock-screen title and play/pause.
 - Seek from the notification/lock screen; resume and use Next/Previous. The actual audio and notification position should agree.
