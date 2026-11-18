@@ -2,34 +2,31 @@
 
 *Your music, without the noise.*
 
-Noctune is an offline-first Android music player. It is independent from [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local), whose app and music data remain untouched.
+Noctune is an offline-first Android music player. It is separate from [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local); the original app and its data remain untouched.
 
 ## Development status — 18 November 2026
 
-- **Phases 0–4 merged.** Boss reported that Checkpoint A (library/playback) and Checkpoint B (Bluetooth, notifications, background and timer) passed on a real phone. Android Gate 2 fix build #44252646203 was green.
-- **Phase 5 experience pass proposed.** Larger touch targets, clear error announcements and accessible player names; the web background and native system-bar surfaces now aim to share a single charcoal color. The specific **Realme camera/status-bar mismatch remains unverified** and [UX issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4) stays open until Boss confirms it later.
-- **Phase 6 not implemented.** Stable signing, safe in-place updates and release verification belong to Checkpoint C.
+- **Phases 0–5 merged.** Boss reported successful Checkpoints A and B on a real Android phone. Phase 4's Bluetooth bug was fixed and confirmed during Gate 2; the follow-up Phase 5 appearance adjustment has **not yet been visually verified on Realme**.
+- **Phase 6 release-safety candidate:** opt-in private-keystore configuration, a manual-only signed APK workflow, guarded signer and package identity checks, and a two-build update checklist. **No signing key has been created or configured, no signed APK built, and no Checkpoint C phone test done.**
+- [Issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4): deferred small UX logic and Realme camera/system-bar color mismatch; stays open.
 
-## Protect existing data
+## Protect installed music
 
-Noctune stores imported copies and playlists in private Android WebView storage. **Never uninstall the original Noctune or clear its app data to update it.** Keep source music files elsewhere; imported app copies are not a backup.
+Noctune stores imported audio, Favorites and playlists in private app storage. **Do not uninstall, clear storage, or overwrite an app just to make an APK install.** Your source music files should always exist separately as the permanent backup.
 
-GitHub Actions builds are **manual-only** to conserve quota. Debug APKs from GitHub runners may use changing signing certificates and cannot be assumed to upgrade existing Noctune installations. The earlier Gate 2 tests used separate package IDs `com.noctune.player.gate2` and `com.noctune.player.gate2fix`. These are test apps, not an update path for original Noctune.
+Old debug APKs might have different signing certificates. The proposed signed test package is deliberately a **separate** `com.noctune.player.rc` app; it can be tested without replacing the original `com.noctune.player`, either Gate 2 debug app, or GT SoundMaster. A successful RC-to-RC upgrade is **not** proof of an in-place upgrade for the old debug app.
 
-## Developer checks
+## Developer verification
 
-Requires Node 22+, Java 21, Android SDK 36 and Gradle 8.14.3.
+Needs Node 22+, Java 21, Android SDK 36 and Gradle 8.14.3:
 
 ```sh
 npm ci
 npm run check
-npm run sync
-cd android
-gradle --no-daemon assembleDebug
 ```
 
-Do not dispatch a GitHub Actions APK build just for Phase 5 CSS/UX edits. Phase 6 prepares the signed release candidate and the next grouped device Checkpoint C. UI styling and Android system-bar colors **must be checked on an actual Realme phone** before Issue #4 can be closed.
+Both Android debug and signed-RC workflows are **manual-only** to conserve quota. The release-candidate workflow will **fail closed** without an explicitly approved private keystore and known certificate fingerprint. No signing keys or passwords are stored in the repository.
 
-The `HTMLAudioElement` remains the only playback engine. The Android media session mirrors its state; Bluetooth route loss pauses without auto-resume. The sleep timer uses a saved deadline and Android's best-effort alarm; Checkpoint B was reported passed by Boss.
+Read [RELEASE-SAFETY.md](RELEASE-SAFETY.md) for owner signing decisions and the short Checkpoint C procedure. [ROADMAP.md](ROADMAP.md) tracks broader scope, [BASELINE.md](BASELINE.md) documents the untouched GT SoundMaster fallback.
 
-See [ROADMAP.md](ROADMAP.md), [BASELINE.md](BASELINE.md), and [TEST-GATE-2.md](TEST-GATE-2.md) (historical completed gate) for context.
+The HTMLAudioElement remains the only playback authority; Android MediaSession mirrors its state. Bluetooth route-loss pauses without auto-resume. No new media engine, database migration or permission expansion was part of Phase 6.
