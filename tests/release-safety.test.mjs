@@ -32,6 +32,11 @@ test('RC workflow is manual-only and refuses unreviewed branches, mismatched sig
   assert.match(workflow, /versionCode=/);
   assert.match(workflow, /apksigner/);
   assert.match(workflow, /ACTUAL.*EXPECTED/);
+  assert.match(workflow, /-storepass:env STORE_PASS/);
+  assert.match(workflow, /GitHub keystore certificate does not match NOCTUNE_RC_CERT_SHA256/);
+  assert.match(workflow, /Could not parse the signing certificate digest from apksigner output/);
+  assert.ok(workflow.indexOf('GitHub keystore certificate matches the approved fingerprint') <
+    workflow.indexOf('Build signed isolated release candidate'));
   assert.match(workflow, /Candidate APK is debuggable/);
   assert.match(workflow, /retention-days: 7/);
   assert.match(workflow, /if: always\(\)/);

@@ -61,6 +61,26 @@ jobs:
           printf '%s' "$STORE_B64" | base64 --decode > "$RUNNER_TEMP/noctune-rc.jks"
           chmod 600 "$RUNNER_TEMP/noctune-rc.jks"
           test -s "$RUNNER_TEMP/noctune-rc.jks"
+          # Check the GitHub-stored keystore BEFORE spending time on an Android build.
+          # The private store password is read from an environment variable, never printed.
+          EXPECTED="$(printf '%s' "$EXPECTED_CERT" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if ! [[ "$EXPECTED" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "Approved certificate fingerprint is not a valid SHA-256 digest"
+            exit 1
+          fi
+          KEYSTORE_CERT="$(keytool -list -v -keystore "$RUNNER_TEMP/noctune-rc.jks" -alias "$KEY_ALIAS" -storepass:env STORE_PASS |
+            sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' |
+            tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if ! [[ "$KEYSTORE_CERT" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "Could not read the certificate fingerprint from the GitHub keystore secret"
+            exit 1
+          fi
+          if [[ "$KEYSTORE_CERT" != "$EXPECTED" ]]; then
+            echo "GitHub keystore certificate does not match NOCTUNE_RC_CERT_SHA256."
+            echo "Check NOCTUNE_RC_KEYSTORE_BASE64 against the original backed-up .p12 file; do not generate a new key."
+            exit 1
+          fi
+          echo "GitHub keystore certificate matches the approved fingerprint"
       - name: Sync Android project
         run: npx cap sync android
       - name: Build signed isolated release candidate
@@ -92,12 +112,18 @@ jobs:
             exit 1
           fi
           "$SIGNER" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/noctune-signature.txt"
-          ACTUAL="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/noctune-signature.txt" | head -1 | tr '[:upper:]' '[:lower:]')"
-          EXPECTED="$(printf '%s' "$EXPECTED_CERT" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
-          if ! [[ "$ACTUAL" =~ ^[0-9a-f]{64}$ ]] || [[ "$ACTUAL" != "$EXPECTED" ]]; then
-            echo "APK signing certificate does not match the approved release-candidate fingerprint"
+          ACTUAL="$(sed -nE 's/^[[:space:]]*Signer #[0-9]+ certificate SHA-256 digest:[[:space:]]*//p' "$RUNNER_TEMP/noctune-signature.txt" |
+            head -1 | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          EXPECTED="$(printf '%s' "$EXPECTED_CERT" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if ! [[ "$ACTUAL" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "Could not parse the signing certificate digest from apksigner output"
             exit 1
           fi
+          if [[ "$ACTUAL" != "$EXPECTED" ]]; then
+            echo "Signed APK certificate differs from the GitHub keystore certificate verified before the build"
+            exit 1
+          fi
+          echo "Signed APK certificate matches the approved fingerprint"
       - name: Upload verified signed RC APK (not a public release)
         uses: actions/upload-artifact@v4
         with:
