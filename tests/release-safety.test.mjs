@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash, X509Certificate } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
@@ -32,12 +35,10 @@ test('RC workflow is manual-only and refuses unreviewed branches, mismatched sig
   assert.match(workflow, /com\.noctune\.player\.rc/);
   assert.match(workflow, /versionCode=/);
   assert.match(workflow, /apksigner/);
-  assert.match(workflow, /ACTUAL.*EXPECTED/);
-  assert.match(workflow, /scripts\/extract-apk-certs\.sh/);
-  assert.match(workflow, /for ACTUAL in/);
+  assert.match(workflow, /--print-certs-pem/);
+  assert.match(workflow, /python3 scripts\/verify-apk-cert-pem\.py/);
   assert.match(workflow, /-storepass:env STORE_PASS/);
   assert.match(workflow, /GitHub keystore certificate does not match NOCTUNE_RC_CERT_SHA256/);
-  assert.match(workflow, /Could not parse the signing certificate digest from apksigner output/);
   assert.ok(workflow.indexOf('GitHub keystore certificate matches the approved fingerprint') <
     workflow.indexOf('Build signed isolated release candidate'));
   assert.match(workflow, /Candidate APK is debuggable/);
@@ -57,17 +58,30 @@ test('existing Gate 2 debug workflow stays manual; signing material cannot be ac
   assert.match(ignore, /^\*\.pfx$/m);
 });
 
-test('APK signer digest extractor supports numbered and SDK-range signers, but ignores public key digests', () => {
-  const digest = 'a'.repeat(64);
-  const input = [
-    'Verifies',
-    `Signer #1 certificate SHA-256 digest: ${digest.toUpperCase()}`,
-    'Signer #1 public key SHA-256 digest: ' + '0'.repeat(64),
-    `Signer (minSdkVersion=24, maxSdkVersion=32) certificate SHA-256 digest: ${digest}`,
-    'Signer #1 certificate SHA-1 digest: ' + 'b'.repeat(40)
-  ].join('\n');
-  const run = text => execFileSync('bash', ['scripts/extract-apk-certs.sh'],
-    { cwd: new URL('../', import.meta.url), input: text, encoding: 'utf8' });
-  assert.deepEqual(run(input).trim().split('\n'), [digest, digest]);
-  assert.equal(run('Verifies\nSigner #1 public key SHA-256 digest: deadbeef\n'), '');
+test('PEM certificate verifier accepts matching signatures and rejects unsafe output', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'noctune-rc-cert-'));
+  try {
+    const certificateFile = join(dir, 'test.pem');
+    execFileSync('openssl', [
+      'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
+      '-subj', '/CN=Temporary test certificate',
+      '-keyout', join(dir, 'key.pem'), '-out', certificateFile
+    ], { stdio: 'ignore' });
+    const pem = readFileSync(certificateFile, 'utf8');
+    const fingerprint = createHash('sha256').update(new X509Certificate(pem).raw).digest('hex');
+    const output = join(dir, 'apksigner.txt');
+    const verify = (body, expected) => {
+      writeFileSync(output, body);
+      return spawnSync('python3',
+        ['scripts/verify-apk-cert-pem.py', output, expected],
+        { cwd: new URL('../', import.meta.url), encoding: 'utf8' });
+    };
+    assert.equal(verify('Signer #1 certificate DN: CN=test\n' + pem, fingerprint).status, 0);
+    assert.equal(verify('Signer (minSdkVersion=...)\n' + pem + '\n' + pem, fingerprint).status, 0);
+    assert.notEqual(verify('No PEM certificate found', fingerprint).status, 0);
+    assert.notEqual(verify(pem, '0'.repeat(64)).status, 0);
+    assert.notEqual(verify(pem, 'invalid').status, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
