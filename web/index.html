@@ -70,9 +70,52 @@
 
     <footer class="now-playing" aria-label="Now playing">
       <div class="cover" aria-hidden="true"><span>N</span></div>
-      <div class="track-meta"><strong>Nothing playing</strong><span>Playback arrives in the next milestone</span></div>
-      <div class="idle-indicator" aria-label="Playback unavailable"><span></span><span></span></div>
+      <button id="open-player" type="button" class="track-meta open-player" disabled aria-label="Open now playing">
+        <strong id="mini-title">Nothing playing</strong><span id="mini-subtitle">Select a song to play</span>
+      </button>
+      <button id="mini-toggle" type="button" class="mini-play" aria-label="Play or pause" disabled>▶</button>
     </footer>
+
+    <dialog id="player-sheet" class="player-sheet" aria-labelledby="player-heading">
+      <div class="player-head">
+        <p class="eyebrow">NOW PLAYING</p>
+        <button id="close-player" type="button" class="subtle-button">Close</button>
+      </div>
+      <div class="player-art" aria-hidden="true">N</div>
+      <h2 id="player-heading" class="player-title">Nothing playing</h2>
+      <p id="player-status" role="status" aria-live="polite" class="player-status">Choose a song in the library</p>
+
+      <div class="progress-labels">
+        <output id="position-text" for="seek">0:00</output>
+        <output id="duration-text" for="seek">0:00</output>
+      </div>
+      <label class="visually-hidden" for="seek">Playback position</label>
+      <input id="seek" type="range" min="0" max="0" step="1" value="0" disabled>
+
+      <div class="player-actions">
+        <button id="previous" type="button" aria-label="Previous track" disabled>⏮</button>
+        <button id="toggle" type="button" class="large-play" aria-label="Play or pause" disabled>▶</button>
+        <button id="next" type="button" aria-label="Next track" disabled>⏭</button>
+      </div>
+      <button id="play-mode" type="button" class="mode-button">Mode: Order</button>
+
+      <section class="timer-section" aria-labelledby="timer-heading">
+        <h3 id="timer-heading">Sleep timer</h3>
+        <p id="timer-status" class="timer-status" aria-live="polite">Off</p>
+        <div class="timer-controls">
+          <label for="timer-minutes">Minutes</label>
+          <input id="timer-minutes" type="number" inputmode="numeric" min="1" max="720" step="1" value="30">
+          <label for="timer-presets">Saved</label>
+          <select id="timer-presets" aria-label="Saved timer presets"></select>
+        </div>
+        <div class="timer-buttons">
+          <button id="timer-start" type="button" class="primary-button">Start</button>
+          <button id="timer-stop" type="button" class="subtle-button">Stop</button>
+          <button id="timer-save" type="button" class="subtle-button">Save preset</button>
+          <button id="timer-remove" type="button" class="subtle-button">Remove preset</button>
+        </div>
+      </section>
+    </dialog>
   </div>
 </body>
 </html>

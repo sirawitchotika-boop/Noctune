@@ -1,12 +1,12 @@
 {
   "name": "noctune",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Independent offline-first Android music player",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "npm test && node --check web/app.js && node --check web/library.js && node --check web/library-rules.js && node scripts/check-shell.mjs",
+    "check": "npm test && node --check web/app.js && node --check web/library.js && node --check web/library-rules.js && node --check web/queue.js && node --check web/playback.js && node --check web/timer.js && node scripts/check-shell.mjs",
     "sync": "cap sync android",
     "build:android": "npm run check && npm run sync && cd android && gradle assembleDebug"
   },

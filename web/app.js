@@ -1,5 +1,7 @@
 import { MusicLibrary } from './library.js';
 import { matchingTracks } from './library-rules.js';
+import { PlaybackController } from './playback.js';
+import { SleepTimer, validMinutes } from './timer.js';
 
 const library = new MusicLibrary();
 const $ = id => document.getElementById(id);
@@ -9,6 +11,82 @@ let tracks = [];
 let playlists = [];
 let busy = false;
 let ready = false;
+
+const audio = document.createElement('audio');
+audio.preload = 'metadata';
+const playback = new PlaybackController({
+  audio,
+  getBlob: id => library.audioBlob(id),
+  onState: updatePlayer
+});
+// The timer reports its initial state during construction; initialize UI afterward.
+let timerInitialized = false;
+const sleepTimer = new SleepTimer({
+  onExpire: () => { playback.pause(); tell('Sleep timer finished. Playback paused.'); },
+  onChange: seconds => { if (timerInitialized) updateTimer(seconds); }
+});
+timerInitialized = true;
+
+function clockText(seconds) {
+  const time = Math.floor(Number.isFinite(seconds) && seconds > 0 ? seconds : 0);
+  return Math.floor(time / 60) + ':' + String(time % 60).padStart(2, '0');
+}
+
+function updatePlayer(state) {
+  $('mini-title').textContent = state.track?.name || 'Nothing playing';
+  $('mini-subtitle').textContent = state.error || (state.loading ? 'Loading audio…' : state.buffering ? 'Buffering…' : state.playing ? 'Playing locally' : state.track ? 'Paused' : 'Select a song to play');
+  $('player-heading').textContent = state.track?.name || 'Nothing playing';
+  $('player-status').textContent = state.error || (state.loading ? 'Loading audio…' : state.buffering ? 'Buffering…' : state.playing ? 'Playing locally' : 'Paused');
+  $('open-player').disabled = !state.track;
+  const enabled = Boolean(state.track) && !state.loading;
+  for (const id of ['mini-toggle', 'toggle', 'previous', 'next']) $(id).disabled = !enabled;
+  $('mini-toggle').textContent = state.playing ? 'Ⅱ' : '▶';
+  $('toggle').textContent = state.playing ? 'Ⅱ' : '▶';
+  $('mini-toggle').setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
+  $('toggle').setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
+  $('position-text').textContent = clockText(state.position);
+  $('duration-text').textContent = clockText(state.duration);
+  $('seek').disabled = !enabled || state.duration <= 0;
+  if (!$('seek').matches(':active')) {
+    $('seek').max = String(Math.floor(state.duration));
+    $('seek').value = String(Math.min(Math.floor(state.position), Math.floor(state.duration)));
+  }
+  const mode = { 'order': 'Order', 'shuffle': 'Shuffle', 'repeat-one': 'Repeat one' };
+  $('play-mode').textContent = 'Mode: ' + mode[state.mode];
+}
+
+function updateTimer(seconds) {
+  $('timer-status').textContent = sleepTimer?.active ? 'Stops in ' + clockText(seconds) : 'Off';
+  $('timer-stop').disabled = !sleepTimer?.active;
+}
+
+function renderPresets() {
+  const select = $('timer-presets');
+  const selected = select.value;
+  select.replaceChildren();
+  for (const minutes of sleepTimer.presets) {
+    const option = document.createElement('option');
+    option.value = String(minutes);
+    option.textContent = minutes + ' min';
+    select.append(option);
+  }
+  if (sleepTimer.presets.includes(Number(selected))) select.value = selected;
+  $('timer-remove').disabled = !sleepTimer.presets.length;
+}
+
+function openPlayer() {
+  if (playback.state.track && !$('player-sheet').open) $('player-sheet').showModal();
+}
+function songsForContext(context) {
+  if (context === 'favorites') return tracks.filter(t => t.favorite);
+  if (context === 'playlists') {
+    const playlist = playlists.find(p => p.id === selectedPlaylistId);
+    const byId = new Map(tracks.map(t => [t.id, t]));
+    return (playlist?.trackIds || []).map(id => byId.get(id)).filter(Boolean);
+  }
+  return tracks;
+}
+
 
 function tell(message, isError = false) {
   const notice = $('notice');
@@ -55,6 +133,13 @@ function songRow(track, context) {
 
   const actions = document.createElement('div');
   actions.className = 'song-actions';
+
+  actions.append(button('Play', 'subtle-button play-track', 'Play ' + track.name, async () => {
+    if (!ready || busy) return;
+    const success = await playback.select(songsForContext(context), track.id);
+    openPlayer();
+    if (!success) tell(playback.state.error || 'Unable to play this song.', true);
+  }));
 
   actions.append(button(track.favorite ? '★' : '☆', 'favorite-button', (track.favorite ? 'Remove from' : 'Add to') + ' Favorites: ' + track.name, async () => {
     await perform(() => library.setFavorite(track.id, !track.favorite), track.favorite ? 'Removed from Favorites.' : 'Added to Favorites.');
@@ -141,6 +226,7 @@ async function refresh() {
   if (selectedPlaylistId === null || !playlists.some(p => p.id === selectedPlaylistId)) {
     selectedPlaylistId = playlists[0]?.id ?? null;
   }
+  playback.syncTracks(tracks);
   render();
 }
 
@@ -177,6 +263,55 @@ for (const tab of document.querySelectorAll('.tab')) {
   tab.addEventListener('click', () => selectView(tab.dataset.view));
 }
 $('search').addEventListener('input', render);
+
+$('open-player').addEventListener('click', openPlayer);
+$('close-player').addEventListener('click', () => $('player-sheet').close());
+for (const id of ['toggle', 'mini-toggle']) {
+  $(id).addEventListener('click', async () => {
+    if (!await playback.toggle() && playback.state.error) tell(playback.state.error, true);
+  });
+}
+$('next').addEventListener('click', () => { void playback.next(); });
+$('previous').addEventListener('click', () => { void playback.previous(); });
+$('seek').addEventListener('change', () => playback.seek(Number($('seek').value)));
+$('play-mode').addEventListener('click', () => {
+  const next = { 'order': 'shuffle', 'shuffle': 'repeat-one', 'repeat-one': 'order' };
+  playback.setMode(next[playback.state.mode]);
+});
+
+$('timer-presets').addEventListener('change', () => {
+  if ($('timer-presets').value) $('timer-minutes').value = $('timer-presets').value;
+});
+$('timer-start').addEventListener('click', () => {
+  try {
+    const value = Number($('timer-minutes').value);
+    if (!validMinutes(value)) throw new Error('Choose 1–720 whole minutes.');
+    sleepTimer.start(value);
+    tell('Sleep timer started.');
+  } catch (error) { tell(error.message, true); }
+});
+$('timer-stop').addEventListener('click', () => { sleepTimer.stop(); tell('Sleep timer stopped.'); });
+$('timer-save').addEventListener('click', () => {
+  try {
+    sleepTimer.addPreset(Number($('timer-minutes').value));
+    renderPresets();
+    $('timer-presets').value = $('timer-minutes').value;
+    tell('Sleep preset saved.');
+  } catch (error) { tell(error.message, true); }
+});
+$('timer-remove').addEventListener('click', () => {
+  const value = Number($('timer-presets').value);
+  if (!validMinutes(value)) return;
+  sleepTimer.removePreset(value);
+  renderPresets();
+  tell('Sleep preset removed.');
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) sleepTimer.tick(); // reconcile elapsed wall time after suspension
+});
+renderPresets();
+updatePlayer(playback.state);
+updateTimer(sleepTimer.remainingSeconds);
 
 $('add-music').addEventListener('click', () => {
   if (view !== 'songs') { tell('Switch to Songs before importing music.', true); return; }
