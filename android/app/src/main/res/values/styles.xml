@@ -4,6 +4,13 @@
     <item name="colorPrimary">@color/noctune_background</item>
     <item name="colorPrimaryDark">@color/noctune_background</item>
     <item name="colorAccent">@color/noctune_accent</item>
+    <!-- Android 15+ draws under transparent system bars. Keep the window
+         backing surface identical to the WebView's #141619 canvas. -->
+    <item name="android:windowBackground">@color/noctune_background</item>
+    <!-- Do not allow OEM contrast scrims to tint one edge differently. -->
+    <item name="android:enforceStatusBarContrast">false</item>
+    <item name="android:enforceNavigationBarContrast">false</item>
+    <item name="android:windowLightNavigationBar">false</item>
     <item name="android:statusBarColor">@color/noctune_background</item>
     <item name="android:navigationBarColor">@color/noctune_background</item>
     <item name="android:windowLightStatusBar">false</item>
