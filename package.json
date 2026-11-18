@@ -1,6 +1,6 @@
 {
   "name": "noctune",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Independent offline-first Android music player",
@@ -15,7 +15,8 @@
     "@capacitor/core": "8.6.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.6.2"
+    "@capacitor/cli": "8.6.2",
+    "fake-indexeddb": "6.2.8"
   },
   "engines": {
     "node": ">=22"
