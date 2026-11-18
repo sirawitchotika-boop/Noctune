@@ -78,8 +78,9 @@ test('browser entrypoint boots, imports locally and plays selected track without
   const row = ids.get('songs').children[0];
   assert.equal(row.children[0].children[0].textContent, file.name);
   row.children[1].children[0].click();
-  await until(() => ids.get('mini-title').textContent === file.name);
-  assert.equal(ids.get('player-sheet').open, true);
+  // The title updates as soon as loading starts; wait for play() and dialog to finish.
+  await until(() => ids.get('player-sheet').open);
+  assert.equal(ids.get('mini-title').textContent, file.name);
   assert.equal(ids.get('mini-subtitle').textContent, 'Playing locally');
 
   ids.get('tab-favorites').click();
