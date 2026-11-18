@@ -3,9 +3,10 @@ import { PlaybackQueue } from './queue.js';
 // The HTMLAudioElement is the only source of playback state.
 // Phase 4 will forward native commands here, not create a second player.
 export class PlaybackController {
-  constructor({ audio, getBlob, onState = () => {}, urls = URL, queue = new PlaybackQueue() }) {
+  constructor({ audio, getBlob, onState = () => {}, beforePlay = async () => {}, urls = URL, queue = new PlaybackQueue() }) {
     this.audio = audio;
     this.getBlob = getBlob;
+    this.beforePlay = beforePlay;
     this.onState = onState;
     this.urls = urls;
     this.queue = queue;
@@ -95,12 +96,13 @@ export class PlaybackController {
       return false;
     }
     try {
+      await this.beforePlay();
       await this.audio.play();
       this.error = '';
       this.emit();
       return true;
-    } catch {
-      this.error = 'Playback could not start. Try pressing Play again or choosing another song.';
+    } catch (error) {
+      this.error = error?.message || 'Playback could not start. Try pressing Play again.';
       this.emit();
       return false;
     }

@@ -9,6 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [noctuneLabel: "@string/app_name"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -17,6 +18,15 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Each GitHub runner can generate a different debug certificate.
+            // Gate 2 must never require uninstalling Boss's existing Noctune data.
+            if (project.hasProperty('noctuneGate2')) {
+                applicationIdSuffix ".gate2"
+                versionNameSuffix "-gate2"
+                manifestPlaceholders["noctuneLabel"] = "Noctune Gate 2"
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

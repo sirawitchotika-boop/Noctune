@@ -1,4 +1,4 @@
-name: Noctune Android debug APK
+name: Noctune Android debug APK (manual Gate 2)
 
 on:
   # Build only when Boss explicitly requests a test-gate APK.
@@ -36,19 +36,19 @@ jobs:
           gradle-version: '8.14.3'
       - name: Sync committed Android project
         run: npx cap sync android
-      - name: Build debug APK
+      - name: Build isolated Gate 2 APK (no data migration)
         working-directory: android
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon -PnoctuneGate2=true assembleDebug
       - name: Check APK package identity
         run: |
           test -s android/app/build/outputs/apk/debug/app-debug.apk
           AAPT="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -name aapt -type f | sort -V | tail -1)"
           test -n "$AAPT"
-          "$AAPT" dump badging android/app/build/outputs/apk/debug/app-debug.apk | grep "^package: name='com.noctune.player'"
+          "$AAPT" dump badging android/app/build/outputs/apk/debug/app-debug.apk | grep "^package: name='com.noctune.player.gate2'"
       - name: Store debug APK (not a signed release)
         uses: actions/upload-artifact@v4
         with:
-          name: noctune-debug-apk
+          name: noctune-gate2-isolated-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
