@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
   <application
       android:allowBackup="false"
       android:icon="@mipmap/ic_launcher"
-      android:label="@string/app_name"
+      android:label="${noctuneLabel}"
       android:supportsRtl="true"
       android:theme="@style/AppTheme">
     <activity
@@ -13,11 +16,19 @@
         android:exported="true"
         android:launchMode="singleTask"
         android:theme="@style/AppTheme.NoActionBarLaunch"
-        android:label="@string/app_name">
+        android:label="${noctuneLabel}">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+    <service
+        android:name=".NoctuneMediaService"
+        android:exported="false"
+        android:stopWithTask="false"
+        android:foregroundServiceType="mediaPlayback" />
+    <receiver
+        android:name=".NoctuneTimerReceiver"
+        android:exported="false" />
   </application>
 </manifest>

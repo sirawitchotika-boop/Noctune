@@ -2,6 +2,7 @@ import { MusicLibrary } from './library.js';
 import { matchingTracks } from './library-rules.js';
 import { PlaybackController } from './playback.js';
 import { SleepTimer, validMinutes } from './timer.js';
+import { NativeMediaBridge } from './native-media.js';
 
 const library = new MusicLibrary();
 const $ = id => document.getElementById(id);
@@ -14,15 +15,32 @@ let ready = false;
 
 const audio = document.createElement('audio');
 audio.preload = 'metadata';
+const nativeMedia = new NativeMediaBridge({
+  onCommand: (action, positionMs) => {
+    if (action === 'pause') playback.pause();
+    else if (action === 'play') void playback.resume();
+    else if (action === 'next') void playback.next();
+    else if (action === 'previous') void playback.previous();
+    else if (action === 'seek') playback.seek(positionMs / 1000);
+  }
+});
 const playback = new PlaybackController({
   audio,
   getBlob: id => library.audioBlob(id),
-  onState: updatePlayer
+  beforePlay: () => nativeMedia.prepare(),
+  onState: state => {
+    updatePlayer(state);
+    nativeMedia.sync(state);
+  }
 });
 // The timer reports its initial state during construction; initialize UI afterward.
 let timerInitialized = false;
 const sleepTimer = new SleepTimer({
-  onExpire: () => { playback.pause(); tell('Sleep timer finished. Playback paused.'); },
+  onExpire: () => {
+    playback.pause();
+    void nativeMedia.sleepDeadline(0).catch(() => {});
+    tell('Sleep timer finished. Playback paused.');
+  },
   onChange: seconds => { if (timerInitialized) updateTimer(seconds); }
 });
 timerInitialized = true;
@@ -287,10 +305,17 @@ $('timer-start').addEventListener('click', () => {
     const value = Number($('timer-minutes').value);
     if (!validMinutes(value)) throw new Error('Choose 1–720 whole minutes.');
     sleepTimer.start(value);
+    void nativeMedia.sleepDeadline(sleepTimer.deadline).catch(() => {
+      tell('Android sleep alarm is unavailable; the in-app timer remains active.', true);
+    });
     tell('Sleep timer started.');
   } catch (error) { tell(error.message, true); }
 });
-$('timer-stop').addEventListener('click', () => { sleepTimer.stop(); tell('Sleep timer stopped.'); });
+$('timer-stop').addEventListener('click', () => {
+  sleepTimer.stop();
+  void nativeMedia.sleepDeadline(0).catch(() => {});
+  tell('Sleep timer stopped.');
+});
 $('timer-save').addEventListener('click', () => {
   try {
     sleepTimer.addPreset(Number($('timer-minutes').value));
@@ -312,6 +337,11 @@ document.addEventListener('visibilitychange', () => {
 renderPresets();
 updatePlayer(playback.state);
 updateTimer(sleepTimer.remainingSeconds);
+// Native commands are optional in a desktop browser. The Android bridge
+// reports the actual media state; it is never a second playback authority.
+void nativeMedia.connect().then(() => {
+  if (sleepTimer.active) return nativeMedia.sleepDeadline(sleepTimer.deadline);
+}).catch(() => { tell('Android media controls could not be connected.', true); });
 
 $('add-music').addEventListener('click', () => {
   if (view !== 'songs') { tell('Switch to Songs before importing music.', true); return; }

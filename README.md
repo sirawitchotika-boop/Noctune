@@ -2,37 +2,34 @@
 
 *Your music, without the noise.*
 
-Noctune is an independent, offline-first Android music player with a distinct app ID, icon, UI, and private music storage. [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local) is a functional reference only, and its app/data remain untouched.
+Noctune is an offline-first Android music player. It is **not GT SoundMaster**; the original app, ID, files and music data remain untouched.
 
-## Development status — 18 Nov 2026
+## Current development state — 18 November 2026
 
-- **Phase 0–1:** [PR #1 merged](https://github.com/sirawitchotika-boop/Noctune/pull/1); native Capacitor shell and distinct identity.
-- **Phase 2:** [PR #2 merged](https://github.com/sirawitchotika-boop/Noctune/pull/2); safe imports/search/Favorites/playlists.
-- **Phase 3:** [PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) (unmerged) adds local playback/queue/timer. CI tests/build and physical-phone checks must be tracked separately.
-- **Phase 4–6:** NOT implemented. Android MediaSession, foreground/background media service, Bluetooth-disconnect handling, experience pass and stable release signing are future milestones.
+- **Phases 0–3 merged:** the independent Android shell, local audio library, Favorites, playlists, queue/modes, playback, seeking and sleep timer. Boss reported the first combined phone checkpoint passed.
+- **Phase 4 in review:** Android foreground media service, MediaSession lock-screen/notification controls, Bluetooth/headphone route-loss pause (Chromium manages audio focus), and Android sleep-timer alarm. **A prior APK compiled, but the Bluetooth-disconnect playback blocker failed on the phone. The fix APK and retest remain unverified.**
+- **Phases 5–6 later:** deferred UX polish (including [Realme system-bar colors](https://github.com/sirawitchotika-boop/Noctune/issues/4)), privately protected signing identity and safe in-place update checks.
 
-## What Phase 3 adds
+## Safety at Test Gate 2
 
-Tap **Play** beside a song to start playing its stored Noctune copy. The mini-player opens a dedicated view with play/pause, next/previous, position seek, and modes: **Order → Shuffle → Repeat one**. Choosing a different library view does not unexpectedly change the active queue. Failed audio loads do not automatically skip to another track.
+The GitHub Actions APK build is **manual-only**; editing and opening PRs do **not** trigger a build. The first Gate 2 APK (`com.noctune.player.gate2`) compiled and installed, but Bluetooth disconnect revealed a persistent play-then-pause blocker. The fix build uses a *new isolated package* `com.noctune.player.gate2fix` and label **Noctune Gate 2 Fix**, so neither the original Noctune nor the first Gate 2 app must be uninstalled or overwritten. GitHub-runner debug certificates can differ between builds. Import only disposable files into the fix app.
 
-**Sleep timer:** choose 1–720 whole minutes or a saved preset, Start/Stop, and optionally save/remove presets. It uses a stored wall-clock deadline, not a decrementing counter. If Android suspends the WebView, its timer callback may be late; notification/background reliability and audio-route handling are Phase 4. **Do not assume the screen-off timer or background playback works until Checkpoint B.**
+**Never uninstall, clear storage, or overwrite Boss's installed Noctune to test a new debug APK.** If Android proposes replacing the original app, stop. See [Test Gate 2 checklist](TEST-GATE-2.md).
 
-IndexedDB stores imported audio copies and their metadata separately. File names and playlist names are shown as text, not injected HTML. Favorite changes are explicit; removing a song from a playlist never removes audio. Deleting an imported track requires confirmation and removes only Noctune's stored copy. This app is **not a backup**; keep the original files. Never use valuable music for destructive/update testing.
+## Developer checks
 
-## Developer verification
-
-Requirements: Node 22+, Java 21, Android SDK 36, Gradle 8.14.3.
+Requires Node 22+, Java 21, Android SDK 36, and Gradle 8.14.3:
 
 ```sh
 npm ci
 npm run check
 npm run sync
 cd android
-gradle --no-daemon assembleDebug
+gradle --no-daemon -PnoctuneGate2=true assembleDebug
 ```
 
-[GitHub Actions Android debug workflow](.github/workflows/android.yml) executes automated tests, JavaScript syntax checks, APK build, package-ID verification, and a temporary debug APK artifact. Passing CI **does not** prove playback on a real phone.
+The [manual workflow](.github/workflows/android.yml) runs automated tests, native build, APK package identity check and uploads `noctune-gate2-fix-debug-apk` (14-day retention). No running Actions job means **no build has been verified** for the latest Phase 4 source. Read [ROADMAP.md](ROADMAP.md) and [BASELINE.md](BASELINE.md) for scope and the preserved GT SoundMaster fallback.
 
-The three planned major Boss tests remain **Checkpoint A** after Phase 3 (local library/playback/timer), **Checkpoint B** after Phase 4 (Bluetooth/notifications/background/screen-off timer), and **Checkpoint C** after Phase 6 (safe, signed updates). A/B/C must use disposable test audio and a short grouped checklist. Installation and release remain unapproved, and debug APKs have no stable release signing plan yet.
+### Architecture notes
 
-See [ROADMAP.md](ROADMAP.md) for the approved scope and [BASELINE.md](BASELINE.md) for the preserved V1 fallback.
+The WebView's **HTMLAudioElement remains the only real playback engine**. Android MediaSession and notifications mirror its state; lock-screen and headset commands return to that same controller. Position is published on meaningful events or notable drift (not every `timeupdate`). A native alarm backs the deadline timer, but Android can delay non-exact idle alarms and a suspended WebView can delay its pause command. **Test Gate 2 must verify screen-off timing and background controls on the Realme phone**. Do not claim this behavior is proven just because an APK compiles.

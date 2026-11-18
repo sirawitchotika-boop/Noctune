@@ -2,14 +2,14 @@
 document_id: NOCTUNE-MVP-ROADMAP
 version: 1.1
 date: 2026-11-18
-status: phase-3-pr-review
+status: phase-4-pr-review
 product: Noctune
 platform: Android (Capacitor)
 project_type: personal offline music player
-implementation_authorized: phases-0-3-only
+implementation_authorized: phases-0-4-only
 new_repository: sirawitchotika-boop/Noctune
 new_repository_url: https://github.com/sirawitchotika-boop/Noctune
-new_repository_status_verified: PRs #1 and #2 merged, main 4882f8a; Phase 3 PR #3 open
+new_repository_status_verified: PRs #1 #2 #3 and #5 merged; main 125095cc; Phase 4 review branch open
 new_repository_default_branch_setting: main
 reference_repository: sirawitchotika-boop/Music-Player-Local
 reference_branch: main
@@ -19,14 +19,18 @@ owner_approval_required_for: [implementation, merging, release, installation, de
 
 ## Current execution status — 18 November 2026
 
-Boss merged [Phase 0–1 PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1) and [Phase 2 PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2). The verified `main` merge head for PR #2 is `4882f8a0496e53d328e139eeb89caeca0277b488`, with successful post-merge CI. Boss authorized the next coding milestone. [Phase 3 PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) implements a single audio controller, queue order/shuffle/repeat-one, seeking, and deadline-based timer with saved presets. Check GitHub for live CI and PR status. No real-device tests or release-signing changes are claimed.
+The first Phase 4 APK build `44247504354` compiled and installed, but Boss reported a **blocker**: Bluetooth disconnect triggers repeated play-then-pause across songs, sometimes after restart. Other Gate 2 testing is suspended ([issue #8](https://github.com/sirawitchotika-boop/Noctune/issues/8)). A focused fix removes Noctune's redundant native audio-focus owner and reserves a new isolated debug ID `com.noctune.player.gate2fix`. **The fix is not yet APK-built or phone-verified.**
 
-**Approval boundary:** Phase 3 coding/PR is authorized, but merging, installing, releasing, destructive operations on real music, and Phases 4–6 require separate permission. Use disposable test files, preserving GT SoundMaster entirely. The original handoff below is historical.
+Boss confirmed that [PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) was merged and reported Checkpoint A passed on a real phone. [PR #5](https://github.com/sirawitchotika-boop/Noctune/pull/5) is merged: the Android APK workflow now runs **manually only**, preserving Actions quota. Current verified main: `125095cc455f4334b639a9cc5f6bcb013773fdf9`.
+
+Boss authorized Phase 4 coding. The separate `feat/phase-4-android-media` branch proposes a native media service, notification/lock-screen actions, audio-focus/route-loss handling and a native inexact sleep alarm. **No Phase 4 Android build or phone test has been run**. Follow [Test Gate 2](TEST-GATE-2.md) once a manual APK build is explicitly requested. Phase 4 builds use an isolated debug ID `com.noctune.player.gate2` to protect previously installed Noctune data from incompatible runner debug signing keys. The reference GT SoundMaster app remains untouched.
+
+**Owner gate:** Code and review PR are authorized; PR merging, installation, release signing, user-data deletion, and Phases 5–6 still require separate permission. Deferred UX observations are tracked in [issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4).
 
 # Noctune
 ## MVP product brief and end-to-end development roadmap
 
-**Document state:** Roadmap v1.1; Phases 0–2 merged, Phase 3 implementation proposed in unmerged PR #3. Phases 4–6, future merges, installs and releases remain unauthorized.  
+**Document state:** Roadmap v1.1; Phases 0–3 merged, manual builds enabled, Phase 4 candidate PR under review; Phases 5–6, installation and release signing remain unauthorized.  
 **Audience:** Boss (product owner) and future AI/software developers.  
 **Principle:** KISS — one user, one device-focused music player, no overengineering.  
 **Source of truth:** This document records agreed scope and proposed decisions. The live repository and actual test evidence take precedence over historical notes.

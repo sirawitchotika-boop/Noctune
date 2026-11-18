@@ -3,9 +3,10 @@ import { PlaybackQueue } from './queue.js';
 // The HTMLAudioElement is the only source of playback state.
 // Phase 4 will forward native commands here, not create a second player.
 export class PlaybackController {
-  constructor({ audio, getBlob, onState = () => {}, urls = URL, queue = new PlaybackQueue() }) {
+  constructor({ audio, getBlob, onState = () => {}, beforePlay = async () => {}, urls = URL, queue = new PlaybackQueue() }) {
     this.audio = audio;
     this.getBlob = getBlob;
+    this.beforePlay = beforePlay;
     this.onState = onState;
     this.urls = urls;
     this.queue = queue;
@@ -92,6 +93,13 @@ export class PlaybackController {
         this.error = 'The selected audio copy is unavailable. Choose another song.';
         this.emit();
       }
+      return false;
+    }
+    try {
+      await this.beforePlay();
+    } catch (error) {
+      this.error = error?.message || 'Android audio controls are unavailable. Please try again.';
+      this.emit();
       return false;
     }
     try {
