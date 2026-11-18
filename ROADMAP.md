@@ -2,14 +2,14 @@
 document_id: NOCTUNE-MVP-ROADMAP
 version: 1.1
 date: 2026-11-18
-status: phase-2-pr-review
+status: phase-3-pr-review
 product: Noctune
 platform: Android (Capacitor)
 project_type: personal offline music player
-implementation_authorized: phases-0-2-only
+implementation_authorized: phases-0-3-only
 new_repository: sirawitchotika-boop/Noctune
 new_repository_url: https://github.com/sirawitchotika-boop/Noctune
-new_repository_status_verified: PR #1 merged main at 1a804244, Phase 2 PR #2 open
+new_repository_status_verified: PRs #1 and #2 merged, main 4882f8a; Phase 3 PR #3 open
 new_repository_default_branch_setting: main
 reference_repository: sirawitchotika-boop/Music-Player-Local
 reference_branch: main
@@ -19,12 +19,14 @@ owner_approval_required_for: [implementation, merging, release, installation, de
 
 ## Current execution status — 18 November 2026
 
-Boss merged [PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1); `main` is at commit `1a804244`. Boss subsequently authorized Phase 2 coding; [PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2) proposes local IndexedDB imports, search, Favorites, playlists and disposable-data tests, while deferring playback to Phase 3. Phase 2 is not merged or phone-tested. See `BASELINE.md` for V1 protection. Approval does **not** cover PR #2 merging, installing, release signing, data deletion outside confirmed in-app test actions, or implementing Phases 3–6. Historical handoff statements below refer to the pre-approval state.
+Boss merged [Phase 0–1 PR #1](https://github.com/sirawitchotika-boop/Noctune/pull/1) and [Phase 2 PR #2](https://github.com/sirawitchotika-boop/Noctune/pull/2). The verified `main` merge head for PR #2 is `4882f8a0496e53d328e139eeb89caeca0277b488`, with successful post-merge CI. Boss authorized the next coding milestone. [Phase 3 PR #3](https://github.com/sirawitchotika-boop/Noctune/pull/3) implements a single audio controller, queue order/shuffle/repeat-one, seeking, and deadline-based timer with saved presets. Check GitHub for live CI and PR status. No real-device tests or release-signing changes are claimed.
+
+**Approval boundary:** Phase 3 coding/PR is authorized, but merging, installing, releasing, destructive operations on real music, and Phases 4–6 require separate permission. Use disposable test files, preserving GT SoundMaster entirely. The original handoff below is historical.
 
 # Noctune
 ## MVP product brief and end-to-end development roadmap
 
-**Document state:** Roadmap v1.1; Phase 0–1 merged, Phase 2 approved for implementation only, with PR #2 unmerged. Phases 3–6, additional merges, installations and releases remain unauthorized.  
+**Document state:** Roadmap v1.1; Phases 0–2 merged, Phase 3 implementation proposed in unmerged PR #3. Phases 4–6, future merges, installs and releases remain unauthorized.  
 **Audience:** Boss (product owner) and future AI/software developers.  
 **Principle:** KISS — one user, one device-focused music player, no overengineering.  
 **Source of truth:** This document records agreed scope and proposed decisions. The live repository and actual test evidence take precedence over historical notes.
