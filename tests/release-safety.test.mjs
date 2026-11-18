@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
@@ -32,6 +33,8 @@ test('RC workflow is manual-only and refuses unreviewed branches, mismatched sig
   assert.match(workflow, /versionCode=/);
   assert.match(workflow, /apksigner/);
   assert.match(workflow, /ACTUAL.*EXPECTED/);
+  assert.match(workflow, /scripts\/extract-apk-certs\.sh/);
+  assert.match(workflow, /for ACTUAL in/);
   assert.match(workflow, /-storepass:env STORE_PASS/);
   assert.match(workflow, /GitHub keystore certificate does not match NOCTUNE_RC_CERT_SHA256/);
   assert.match(workflow, /Could not parse the signing certificate digest from apksigner output/);
@@ -52,4 +55,19 @@ test('existing Gate 2 debug workflow stays manual; signing material cannot be ac
   assert.match(ignore, /^\*\.keystore$/m);
   assert.match(ignore, /^\*\.p12$/m);
   assert.match(ignore, /^\*\.pfx$/m);
+});
+
+test('APK signer digest extractor supports numbered and SDK-range signers, but ignores public key digests', () => {
+  const digest = 'a'.repeat(64);
+  const input = [
+    'Verifies',
+    `Signer #1 certificate SHA-256 digest: ${digest.toUpperCase()}`,
+    'Signer #1 public key SHA-256 digest: ' + '0'.repeat(64),
+    `Signer (minSdkVersion=24, maxSdkVersion=32) certificate SHA-256 digest: ${digest}`,
+    'Signer #1 certificate SHA-1 digest: ' + 'b'.repeat(40)
+  ].join('\n');
+  const run = text => execFileSync('bash', ['scripts/extract-apk-certs.sh'],
+    { cwd: new URL('../', import.meta.url), input: text, encoding: 'utf8' });
+  assert.deepEqual(run(input).trim().split('\n'), [digest, digest]);
+  assert.equal(run('Verifies\nSigner #1 public key SHA-256 digest: deadbeef\n'), '');
 });
