@@ -1,6 +1,10 @@
-# Phase 6 — signing and safe-update gate (not yet authorized for installation)
+# Phase 6 — signing and safe-update gate (RC gate passed; project paused)
 
-**Current state:** Signing *configuration* is prepared, but there is **no signing key provisioned**, no signed APK built, and no Checkpoint C phone test. This is not a release.
+**Status as of 19 November 2026:** Boss set Noctune to **PAUSED**, not released. Signed isolated RC v1 and v2 APK workflows succeeded, and Boss reported successful RC v1→v2 phone update and retained disposable data. This proves only the isolated `com.noctune.player.rc` signing/update path. Do not treat it as approval to replace existing debug-signed Noctune or publish a release.
+
+**Evidence:** [RC v1 workflow](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44305375218); [RC v2 workflow](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44348221153). The original private keystore and GitHub secrets were configured by Boss; keep all private key material backed up privately and do not add it to Git. Artifacts have 7-day retention, not permanent backup.
+
+**No new actions while paused:** No signed builds, migrations, installations, key rotation/deletion, or public release. The sections below are retained as procedural reference, not pending instructions for Boss to repeat Checkpoint C.
 
 ## Why the test app is separate
 

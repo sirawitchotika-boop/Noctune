@@ -1,21 +1,38 @@
 ---
 document_id: NOCTUNE-MVP-ROADMAP
-version: 1.1
-date: 2026-11-18
-status: phase-6-signing-gate
+version: 1.2
+date: 2026-11-19
+status: paused-after-checkpoint-c
 product: Noctune
 platform: Android (Capacitor)
 project_type: personal offline music player
-implementation_authorized: phases-0-6-code-only
+implementation_authorized: phases-0-6-completed-new-work-paused
 new_repository: sirawitchotika-boop/Noctune
 new_repository_url: https://github.com/sirawitchotika-boop/Noctune
-new_repository_status_verified: PRs #1 #2 #3 #5 #6 #9 merged; main c5da272; Phase 6 candidate pending
+new_repository_status_verified: main f7bab2f9; Phase 6 and signing fixes merged; isolated RC v1/v2 builds and Boss Checkpoint C passed
 new_repository_default_branch_setting: main
 reference_repository: sirawitchotika-boop/Music-Player-Local
 reference_branch: main
 reference_commit: d519dbf1f330a55cbd7be93cc6446cd21a613851
 owner_approval_required_for: [implementation, merging, release, installation, deletion, signing-key-changes]
 ---
+
+## Current status — 19 November 2026 (paused by product owner)
+
+**State: PAUSED / PRESERVED, not abandoned or released.** Boss chose to stop further Noctune development while reconsidering its distinct purpose relative to GT SoundMaster. Do not start the remaining UI/UX polish items, new features, builds, or a public release until Boss explicitly resumes the project. Keep Noctune, GT SoundMaster, installed data, and signing credentials untouched.
+
+- **Source:** `sirawitchotika-boop/Noctune` main `f7bab2f9fb884d3aacf3e6efe96ee9cf54927cd3`; PRs #9 (Phase 5), #10 (Phase 6), #11–#13 (RC signature verification) merged. No open PRs when this handoff was prepared.
+- **Implemented:** Roadmap Phases 0–6. Phase 5 introduced deliberate UI/accessibility adjustments; this is not the same as Boss approving the final appearance.
+- **GitHub evidence:** Manual isolated signed RC v1 [run #44305375218](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44305375218) and v2 [run #44348221153](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44348221153) succeeded. Both `noctune-rc-v1-signed-apk` and `noctune-rc-v2-signed-apk` artifacts were present when checked, with 7-day retention (expiring 25 November 2026 UTC); do not rely on Actions as long-term APK backup.
+- **Phone evidence (Boss-reported):** Checkpoints A and B passed earlier. Checkpoint C passed: isolated Noctune RC v1 installed, two disposable tracks imported, Favorite/playlist and playback checked; RC v2 installed **over** RC v1 and retained tracks, Favorite, playlist, playback and notification checks; original Noctune and GT SoundMaster remained unchanged.
+- **Unresolved UX:** [Issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4) remains open: Realme top/bottom system-bar color and deferred minor UX polish. Phase 5 supplied a possible fix, but an explicit final visual confirmation is not recorded. Boss estimates up to ~20 remaining polish items; detailed acceptance criteria have not been supplied, so do not invent them.
+- **Release limitation:** An RC-to-RC update only proves update continuity for `com.noctune.player.rc` signed with the same private key. It does **not** establish an in-place upgrade or migration for an existing debug-signed `com.noctune.player`. No public release or final package/signing migration decision has been approved.
+- **Private signing material:** Privately managed key, GitHub Actions secrets and public fingerprint were configured by Boss and used for successful RC builds. Never copy signing secrets or private-key data into this repository, an issue, PR, or chat; do not rotate or delete them as part of pausing.
+
+**Resume with one decision:** Boss first defines what makes Noctune meaningfully different from GT SoundMaster (or chooses to keep it experimental). Only then review the known UX backlog and release/migration choice; verify live repository and CI state before touching code. No automatic restart or deadline.
+
+<details>
+<summary>Historical planning status — 18 November 2026</summary>
 
 ## Current execution status — 18 November 2026
 
@@ -25,10 +42,13 @@ Boss merged [Phase 5 PR #9](https://github.com/sirawitchotika-boop/Noctune/pull/
 
 **Safety gate:** Merging requires Boss approval. Actual key management, any changes to original Noctune signing identity, installs/updates, data migration and public release require separate explicit approval. Follow [RELEASE-SAFETY.md](RELEASE-SAFETY.md) before Checkpoint C. A passing RC-to-RC update is **not** proof that original debug-installed Noctune can be upgraded without losing data. GT SoundMaster remains untouched.
 
+
+</details>
+
 # Noctune
 ## MVP product brief and end-to-end development roadmap
 
-**Document state:** Roadmap v1.1; Phases 0–5 merged, Phase 6 signing/update preparation under review. Private signing key and Checkpoint C remain pending.  
+**Document state:** Roadmap v1.2; Phases 0–6 implemented, Checkpoints A/B/C passed (Boss-reported); project paused pending product-identity decision. Private signing key and Checkpoint C remain pending.  
 **Audience:** Boss (product owner) and future AI/software developers.  
 **Principle:** KISS — one user, one device-focused music player, no overengineering.  
 **Source of truth:** This document records agreed scope and proposed decisions. The live repository and actual test evidence take precedence over historical notes.

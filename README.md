@@ -4,11 +4,15 @@
 
 Noctune is an offline-first Android music player. It is separate from [GT SoundMaster](https://github.com/sirawitchotika-boop/Music-Player-Local); the original app and its data remain untouched.
 
-## Development status — 18 November 2026
+## Development status — 19 November 2026
 
-- **Phases 0–5 merged.** Boss reported successful Checkpoints A and B on a real Android phone. Phase 4's Bluetooth bug was fixed and confirmed during Gate 2; the follow-up Phase 5 appearance adjustment has **not yet been visually verified on Realme**.
-- **Phase 6 release-safety candidate:** opt-in private-keystore configuration, a manual-only signed APK workflow, guarded signer and package identity checks, and a two-build update checklist. **No signing key has been created or configured, no signed APK built, and no Checkpoint C phone test done.**
-- [Issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4): deferred small UX logic and Realme camera/system-bar color mismatch; stays open.
+**PAUSED at Boss's direction; current code and installed apps are preserved.** The technical MVP and isolated update gate are complete, but Noctune's unique product direction is undecided. No additional polish or release work is authorized by this status update.
+
+- Phases 0–6 implemented; Boss reported real-phone Checkpoints **A, B and C passed**.
+- Signed isolated RC v1 and RC v2 workflows passed: [v1 run](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44305375218) · [v2 run](https://github.com/sirawitchotika-boop/Noctune/actions/runs/44348221153). Normal RC v1 → v2 update retained disposable songs, Favorite and playlist, per Boss.
+- **Still open:** [Issue #4](https://github.com/sirawitchotika-boop/Noctune/issues/4) (Realme status/navigation colors and deferred UX refinements). Phase 5 color adjustments are not confirmed visually.
+- **Not production-release ready:** This update test covers the separate `com.noctune.player.rc` package only, not upgrading a previous debug-signed `com.noctune.player` installation. No migration strategy or public release approved.
+- For exact evidence, safeguards and a single resume decision, see [ROADMAP.md](ROADMAP.md) and [RELEASE-SAFETY.md](RELEASE-SAFETY.md). Preserve private signing-key backups; do not place signing material in Git.
 
 ## Protect installed music
 
